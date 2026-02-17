@@ -4,7 +4,7 @@
 
 **Enterprise-grade financial platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
 
-![U2INVEST Logo](static/images/LOGO_final.png)
+<img src="static/images/LOGO_final.png" width="280" alt="U2INVEST Logo">
 
 ## ✨ Key Features
 
@@ -40,7 +40,7 @@ The system uses a **LangGraph** workflow to manage state and tool execution.
 *   **Persistence:** SQLite checkpoints ensure chat sessions persist across restarts.
 *   **RAG Pipeline:** ChromaDB indexes financial PDFs for semantic retrieval.
 
-*(See `stock_agent_arch.md` for the detailed Mermaid diagram)*
+![Architecture Diagram](static/images/stock_agent_arch.png)
 
 ## 🚀 Getting Started
 

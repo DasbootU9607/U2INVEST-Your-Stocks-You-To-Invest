@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U2INVEST | Master the Market</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --u2-navy: #003399; --u2-sky: #33CCFF; --yt-text: #0f0f0f; --yt-gray: #606060; }
+        body { font-family: 'Inter', sans-serif; background-color: #fff; color: #1d1d1f; -webkit-font-smoothing: antialiased; height: 100vh; overflow: hidden; }
+        .page-view { transition: opacity 0.5s ease, transform 0.5s ease; position: absolute; width: 100%; height: 100vh; overflow: hidden; top: 0; padding-top: 60px; }
+        #view-landing { padding-top: 0; height: 100vh; overflow-y: auto; }
+        .view-hidden { opacity: 0; pointer-events: none; transform: translateY(20px); display: none;}
+        .logo-main { width: 280px; height: auto; mix-blend-mode: multiply; margin: 0 auto; display: block; }
+        .ds-card { background: #fff; border: 2px solid #f3f4f6; border-radius: 28px; padding: 3rem; transition: 0.4s; cursor: pointer; text-align: left; }
+        .ds-card:hover { border-color: var(--u2-navy); background: #f0f7ff; transform: translateY(-10px); }
+        #roadmap-svg { background: #fcfcfc; border-radius: 40px; border: 1px solid #f3f4f6; cursor: grab; }
+        .node-completed { filter: drop-shadow(0 0 10px #FBBF24); stroke: #FBBF24 !important; stroke-width: 6px !important; }
+        .video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 32px; background: #000; width: 100%; }
+        .video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        #overlay { position: fixed; inset: 0; background: #fff; z-index: 5000; display: none; opacity: 0; transform: translateX(100%); transition: 0.5s; overflow-y: auto; }
+        #overlay.active { display: block; opacity: 1; transform: translateX(0); }
+        .k-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; transition: 0.4s; overflow: hidden; }
+        
+        .yt-avatar { width: 40px; height: 40px; border-radius: 50%; background: #f3f4f6; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #003399; flex-shrink: 0; }
+        .yt-avatar-sm { width: 24px; height: 24px; font-size: 10px; }
+        .yt-action-btn { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--yt-gray); transition: 0.2s; font-size: 13px; font-weight: 600; }
+        .yt-action-btn:hover { color: #000; }
+        .yt-reply-input { border-bottom: 1px solid #e5e5e5; transition: 0.3s; }
+        .yt-reply-input:focus-within { border-bottom: 2px solid #000; }
+
+        .star { font-size: 32px; color: #e5e7eb; cursor: pointer; transition: 0.2s; }
+        .star.active { color: #fbbf24; }
+        .ms-pill { background: #f3f4f6; padding: 5px; border-radius: 99px; display: inline-flex; }
+        .ms-pill-item { padding: 10px 32px; border-radius: 99px; font-size: 14px; font-weight: 700; cursor: pointer; color: #718096; }
+        .ms-pill-item.active { background: var(--u2-navy); color: #fff; box-shadow: 0 8px 20px rgba(0,51,153,0.2); }
+        .cmt-filter-btn { font-size: 14px; font-weight: 700; color: var(--yt-gray); cursor: pointer; padding: 4px 12px; border-radius: 8px; }
+        .cmt-filter-btn.active { color: #000; background: #f2f2f2; }
+
+        #share-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 7000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .share-box { background: white; width: 450px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); position: relative; }
+        .share-icon-circle { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; transition: 0.2s; }
+        .share-icon-circle:hover { transform: scale(1.1); }
+        .share-url-container { background: #f9f9f9; border: 1px solid #ddd; padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; margin-top: 20px; }
+
+        .roadmap-link { fill: none !important; stroke: #e2e8f0; stroke-width: 2.5; stroke-dasharray: 4; animation: flow 10s linear infinite; }
+        @keyframes flow { to { stroke-dashoffset: -40; } }
+        .custom-line { fill: none !important; stroke: var(--u2-sky); stroke-width: 4; cursor: pointer; transition: 0.3s; filter: url(#glow); }
+        .custom-line.active { stroke: #fff; stroke-width: 6; }
+        .node-port { fill: #94a3b8; cursor: pointer; transition: 0.3s; }
+        .node-port.active { fill: var(--u2-sky); r: 8; filter: drop-shadow(0 0 5px var(--u2-sky)); }
+        .roadmap-legend { position: absolute; bottom: 30px; right: 30px; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 20px; border: 1px solid #eee; backdrop-filter: blur(10px); z-index: 50; }
+        
+        #confirm-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-box { background: white; padding: 40px; border-radius: 35px; width: 400px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.2); }
+        #node-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 6000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+    
+        .lab-panel { background: #fff; border-radius: 20px; border: 2px solid #f3f4f6; padding: 1.5rem; }
+        .compact-stat { background: #fff; border-radius: 16px; border: 2px solid #f3f4f6; padding: 1rem; }
+        .stock-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 1rem; transition: 0.3s; cursor: pointer; }
+        .stock-card:hover { border-color: var(--u2-navy); box-shadow: 0 4px 12px rgba(0, 51, 153, 0.1); }
+        .stock-card.selected { border-color: var(--u2-navy); background: #f0f7ff; }
+        .price-up { color: #10b981; }
+        .price-down { color: #ef4444; }
+        .trade-btn { padding: 0.75rem 2rem; border-radius: 12px; font-weight: 700; transition: 0.3s; cursor: pointer; border: none; }
+        .trade-btn.buy { background: #10b981; color: white; }
+        .trade-btn.sell { background: #ef4444; color: white; }
+        .holding-card { background: #f8fafc; border-radius: 12px; padding: 0.75rem; margin-bottom: 0.5rem; border-left: 4px solid var(--u2-navy); }
+
+        #agent-chat-container { display: flex; height: 100%; background: #fff; }
+        .agent-sidebar { width: 260px; border-right: 1px solid #e5e7eb; background: #f9fafb; padding: 1rem; flex-shrink: 0; }
+        .agent-main { flex: 1; display: flex; flex-direction: column; }
+        .agent-header { padding: 1rem 2rem; border-bottom: 1px solid #e5e7eb; display: flex; justify-content: space-between; align-items: center; }
+        .agent-messages { flex: 1; overflow-y: auto; padding: 2rem; background: #fff; scroll-behavior: smooth; }
+        .agent-input-area { border-top: 1px solid #e5e7eb; padding: 1.5rem 2rem; background: #fff; position: relative; }
+        .message-bubble { max-width: 85%; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.5rem; animation: fadeIn 0.3s ease; }
+        .message-bubble.user { margin-left: auto; align-items: flex-end; }
+        .message-bubble.assistant { margin-right: auto; align-items: flex-start; }
+        .message-content { padding: 1.25rem 1.75rem; border-radius: 20px; font-size: 15px; line-height: 1.7; color: #374151; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .message-bubble.user .message-content { background: #f0f4ff; color: #1e3a8a; border-radius: 20px 20px 4px 20px; }
+        .message-bubble.assistant .message-content { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 20px 20px 20px 4px; width: 100%; }
+        .message-timestamp { font-size: 11px; color: #9ca3af; margin-top: 4px; padding: 0 4px; }
+        
+        /* Chart & Visuals */
+        .chat-chart-container { width: 100%; height: 300px; margin-top: 1rem; border: 1px solid #f3f4f6; border-radius: 12px; padding: 10px; background: #fafafa; }
+        .json-chart-block { display: none; } /* Hide raw JSON */
+        
+        /* Markdown-ish Styles */
+        .msg-header { font-weight: 700; font-size: 1.1em; margin-top: 1em; margin-bottom: 0.5em; color: #111827; }
+        .msg-list { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .msg-list li { margin-bottom: 0.25em; }
+
+        /* Input Area & Buttons */
+        .agent-input-box { display: flex; gap: 1rem; align-items: flex-end; background: #fff; border-radius: 16px; padding: 0.75rem 1rem; border: 1px solid #e5e7eb; transition: all 0.2s; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .agent-input-box:focus-within { border-color: var(--u2-navy); box-shadow: 0 4px 12px rgba(0, 51, 153, 0.1); }
+        .agent-input-box textarea { flex: 1; border: none; outline: none; background: transparent; resize: none; font-size: 15px; padding: 0.5rem; font-family: 'Inter', sans-serif; max-height: 200px; min-height: 24px; }
+        .send-btn { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; border: none; flex-shrink: 0; }
+        .send-btn.active { background: var(--u2-navy); color: white; }
+        .send-btn.stop { background: #ef4444; color: white; }
+        .send-btn:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .stock-tag { display: inline-flex; align-items: center; gap: 0.5rem; background: var(--u2-navy); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 13px; font-weight: 600; margin: 0.25rem; cursor: pointer; transition: 0.3s; }
+    </style>
+    <script>
+        function showView(v) {
+            document.querySelectorAll('.page-view').forEach(el => {
+                if (el.id === `view-${v}`) {
+                    el.classList.remove('view-hidden');
+                } else {
+                    el.classList.add('view-hidden');
+                }
+            });
+            setTimeout(() => {
+                if (v === 'academy') loadData();
+                if (v === 'lab') loadLabData();
+                if (v === 'agent') loadAgentData();
+            }, 10);
+        }
+    </script>
+</head>
+<body class="bg-white">
+
+    <header class="fixed top-0 w-full h-14 flex items-center justify-between px-10 bg-white/90 backdrop-blur-md border-b border-gray-100 z-[1000]">
+        <div class="flex items-center space-x-3 cursor-pointer" onclick="showView('landing')">
+            <img src="/static/images/LOGO_final.png" class="h-8" style="mix-blend-mode: multiply;">
+            <span class="font-extrabold text-lg tracking-tighter text-[#003399]">U2INVEST</span>
+        </div>
+        <nav class="flex items-center space-x-12">
+            <a onclick="showView('academy')" class="text-xs font-black text-gray-500 uppercase tracking-widest cursor-pointer hover:text-[#003399]">Academy</a>
+            <a onclick="showView('lab')" class="text-xs font-black text-gray-500 uppercase tracking-widest cursor-pointer hover:text-[#003399]">Lab</a>
+            <a onclick="showView('agent')" class="text-xs font-black text-gray-500 uppercase tracking-widest cursor-pointer hover:text-[#003399]">U2CHAT</a>
+        </nav>
+    </header>
+
+    <main id="view-landing" class="page-view flex flex-col items-center justify-center">
+        <div class="text-center max-w-6xl px-6">
+            <img src="/static/images/LOGO_final.png" class="logo-main mb-6" alt="U2INVEST">
+            <h1 class="text-5xl font-black mb-4 tracking-tighter text-[#003399]">Your path, Your Choice, Your Future, You to Invest.</h1>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+                <div class="ds-card" onclick="showView('academy')"><h3 class="text-2xl font-bold">Start Learning</h3><p>50 Academic modules from Foundations to Advanced Mastery.</p><span class="text-xs font-black text-[#003399]">Enter Academy →</span></div>
+                <div class="ds-card" onclick="showView('lab')"><h3 class="text-2xl font-bold">Trading Lab</h3><p>Real-time market simulation in zero-risk environment.</p><span class="text-xs font-black text-[#003399]">Start Trading →</span></div>
+                <div class="ds-card" onclick="showView('agent')"><h3 class="text-2xl font-bold">U2CHAT</h3><p>Interactive analyst for strategy and market concept guidance.</p><span class="text-xs font-black text-[#003399]">Ask AI →</span></div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-academy" class="page-view view-hidden flex flex-col bg-gray-50">
+        <div class="w-full py-12 flex flex-col items-center border-b border-gray-200 bg-white">
+            <h2 class="text-2xl font-black mb-8 uppercase tracking-widest text-[#003399]">Knowledge Academy</h2>
+            <div class="ms-pill">
+                <div class="ms-pill-item active" id="tab-blocks" onclick="switchAcademy('blocks')">Course Modules</div>
+                <div class="ms-pill-item" id="tab-roadmap" onclick="switchAcademy('roadmap')">Learning Roadmap</div>
+            </div>
+            <div id="roadmap-controls" class="hidden mt-6 flex space-x-4">
+                <div class="flex bg-gray-100 p-1 rounded-full shadow-inner border">
+                    <button id="btn-mode-auto" onclick="setRoadmapMode('auto')" class="px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all bg-white shadow text-[#003399]">Designed By U2INVEST</button>
+                    <button id="btn-mode-custom" onclick="setRoadmapMode('custom')" class="px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all text-gray-400">You to Design</button>
+                </div>
+                <button id="btn-add-node" onclick="openNodeModal()" class="hidden px-6 py-2 bg-[#003399] text-white rounded-full text-[10px] font-black uppercase shadow-lg">Add Node +</button>
+            </div>
+        </div>
+
+        <div class="flex-grow overflow-y-auto custom-scroll p-10 relative">
+            <div id="grid-blocks" class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-8"></div>
+            <div id="roadmap-box" class="hidden h-[700px] w-full bg-white rounded-[40px] shadow-sm relative p-4 overflow-hidden">
+                <div id="legend-auto" class="roadmap-legend text-[10px] font-bold text-gray-500 uppercase space-y-2">
+                    <p class="text-gray-400 mb-1 border-b pb-1">Difficulty Levels</p>
+                    <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-[#33CCFF]"></div><span>Foundation</span></div>
+                    <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-[#2563EB]"></div><span>Advanced</span></div>
+                    <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-[#7C3AED]"></div><span>Professional</span></div>
+                    <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-[#FFD60A]"></div><span>Completed</span></div>
+                </div>
+                <div id="legend-custom" class="hidden roadmap-legend text-[10px] font-bold text-gray-500 uppercase space-y-2">
+                    <p class="text-[#003399] mb-1 border-b pb-1">Design Mode</p>
+                    <div class="flex items-center space-x-2"><div class="w-3 h-3 rounded-full bg-[#33CCFF]"></div><span>Active Point</span></div>
+                    <div class="text-[9px] text-gray-400 pt-1">Click points to Link<br>Click line to Break</div>
+                </div>
+                <svg id="roadmap-svg" class="w-full h-full"><defs><filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/><feComposite in="SourceGraphic" in2="blur" operator="over"/></filter></defs></svg>
+            </div>
+        </div>
+    </main>
+
+    <div id="overlay" class="custom-scroll">
+        <div class="max-w-5xl mx-auto py-24 px-10 relative">
+            <button onclick="closeModule()" class="fixed top-20 left-10 text-xs font-bold uppercase bg-black text-white px-8 py-4 rounded-full z-[6000] shadow-2xl hover:scale-105 transition">✕ Exit Academy</button>
+            <div class="video-box mb-12"><div id="video-target"></div></div>
+            <div class="flex justify-between items-baseline mb-8">
+                <h1 id="mod-name" class="text-5xl font-black text-[#003399]"></h1>
+                <div class="text-right flex flex-col items-end">
+                    <div class="text-[10px] font-black text-gray-400 uppercase">Avg Rating</div>
+                    <div id="avg-rating" class="text-4xl font-black text-[#fbbf24]">0.0</div>
+                    <button onclick="openShare()" class="mt-4 flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-black transition uppercase"><i class="bi bi-share"></i> Share</button>
+                </div>
+            </div>
+            <p id="mod-intro" class="text-xl text-gray-500 italic mb-12"></p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+                <div class="bg-gray-50 p-8 rounded-3xl"><h4 class="text-xs font-black uppercase mb-4 text-[#003399]">Outcomes</h4><div id="mod-outcomes" class="space-y-2"></div></div>
+                <div class="bg-blue-50 p-8 rounded-3xl"><h4 class="text-xs font-black uppercase mb-4 text-[#003399]">Takeaways</h4><div id="mod-takeaways" class="space-y-2"></div></div>
+            </div>
+            <div id="status-box" class="mb-24"></div>
+            <hr class="my-24 border-gray-100">
+            <div class="text-left max-w-4xl mx-auto">
+                <div class="flex items-center gap-8 mb-10"><h4 class="font-bold text-xl text-[#0f0f0f]">Comments</h4><div class="flex items-center gap-2"><i class="bi bi-filter-left text-2xl"></i><div class="flex space-x-1"><span onclick="sortComments('top')" id="sort-top" class="cmt-filter-btn active">Top</span><span onclick="sortComments('newest')" id="sort-newest" class="cmt-filter-btn">Newest</span></div></div></div>
+                <div id="reply-indicator" class="hidden flex items-center justify-between bg-gray-50 px-6 py-2 rounded-t-lg border-b border-gray-200"><span class="text-xs font-bold text-[#606060]" id="reply-label">Replying to @user</span><button onclick="cancelReply()" class="text-xs font-black text-gray-400 hover:text-black">CANCEL</button></div>
+                <div class="flex gap-4 mb-16"><div class="yt-avatar">U</div><div class="flex-grow"><div class="yt-reply-input"><textarea id="cmt-input" class="w-full bg-transparent py-2 text-sm outline-none resize-none h-10 overflow-hidden" placeholder="Add a comment..." oninput="this.style.height = '';this.style.height = this.scrollHeight + 'px'"></textarea></div><div class="flex justify-end mt-2 space-x-3"><button onclick="cancelReply()" class="px-4 py-2 text-sm font-bold rounded-full hover:bg-gray-100 transition">Cancel</button><button onclick="postComment()" class="px-4 py-2 bg-[#003399] text-white text-sm font-bold rounded-full hover:bg-opacity-90 shadow-md">Comment</button></div></div></div>
+                <div id="comment-list" class="space-y-10 pb-20"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="share-modal" onclick="if(event.target === this) closeShare()">
+        <div class="share-box">
+            <div class="flex justify-between items-center mb-6"><h3 class="text-lg font-bold">Share</h3><button onclick="closeShare()" class="text-2xl text-gray-400 hover:text-black">&times;</button></div>
+            <div class="flex justify-between items-center gap-4 px-2">
+                <a id="share-whatsapp" href="#" target="_blank" class="flex flex-col items-center gap-2"><div class="share-icon-circle bg-[#25D366]"><i class="bi bi-whatsapp"></i></div><span class="text-[10px] font-bold">WhatsApp</span></a>
+                <a id="share-facebook" href="#" target="_blank" class="flex flex-col items-center gap-2"><div class="share-icon-circle bg-[#1877F2]"><i class="bi bi-facebook"></i></div><span class="text-[10px] font-bold">Facebook</span></a>
+                <a id="share-x" href="#" target="_blank" class="flex flex-col items-center gap-2"><div class="share-icon-circle bg-[#000000]"><i class="bi bi-twitter-x"></i></div><span class="text-[10px] font-bold">X</span></a>
+                <a id="share-email" href="#" target="_blank" class="flex flex-col items-center gap-2"><div class="share-icon-circle bg-[#8e8e8e]"><i class="bi bi-envelope-fill"></i></div><span class="text-[10px] font-bold">Email</span></a>
+                <a id="share-linkedin" href="#" target="_blank" class="flex flex-col items-center gap-2"><div class="share-icon-circle bg-[#0077b5]"><i class="bi bi-linkedin"></i></div><span class="text-[10px] font-bold">LinkedIn</span></a>
+            </div>
+            <div class="share-url-container mt-8"><span id="share-url-text" class="text-xs text-gray-500 truncate mr-4">https://u2invest.com/module/1</span><button onclick="copyLink()" class="bg-[#003399] text-white px-4 py-2 rounded-full text-[10px] font-bold uppercase shrink-0 hover:bg-blue-800 transition">Copy</button></div>
+        </div>
+    </div>
+
+    <main id="view-lab" class="page-view view-hidden bg-gray-50">
+        <!-- GATEWAY COMPONENT -->
+        <div id="lab-gateway" class="w-full h-full flex items-center justify-center p-6 transition-all duration-500">
+            <div class="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Advanced Path -->
+                <div onclick="setLabView('dashboard')" class="group relative bg-white border-2 border-gray-100 hover:border-[#003399] rounded-[40px] p-10 cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-[#003399] text-white text-[10px] font-black uppercase px-4 py-2 rounded-bl-2xl">Advanced</div>
+                    <div class="mb-6 w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-[#003399] text-2xl group-hover:scale-110 transition"><i class="bi bi-graph-up-arrow"></i></div>
+                    <h2 class="text-3xl font-black text-[#003399] mb-4">The Lab</h2>
+                    <p class="text-gray-500 mb-8 leading-relaxed">Direct access to the professional trading dashboard. Real-time market data, technical analysis tools, and portfolio management.</p>
+                    <span class="text-xs font-black text-[#003399] uppercase tracking-widest group-hover:underline">Enter Dashboard →</span>
+                </div>
+
+                <!-- Beginner Path -->
+                <div onclick="setLabView('guide')" class="group relative bg-[#003399] text-white rounded-[40px] p-10 cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-white/20 text-white text-[10px] font-black uppercase px-4 py-2 rounded-bl-2xl">Beginner</div>
+                    <div class="mb-6 w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white text-2xl group-hover:scale-110 transition"><i class="bi bi-compass"></i></div>
+                    <h2 class="text-3xl font-black text-white mb-4">Investment 101</h2>
+                    <p class="text-blue-100 mb-8 leading-relaxed">A step-by-step guided experience. Learn the basics of trading, understand terminology, and make your first simulated trade.</p>
+                    <span class="text-xs font-black text-white uppercase tracking-widest group-hover:underline">Start Guide →</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DASHBOARD COMPONENT (Existing Lab) -->
+        <div id="lab-dashboard" class="w-full h-full hidden overflow-y-auto custom-scroll relative">
+            <button onclick="setLabView('gateway')" class="absolute top-6 right-6 z-50 text-[10px] font-black uppercase text-gray-400 hover:text-[#003399] bg-white/80 px-3 py-1 rounded-full backdrop-blur border border-gray-200">Back to Gateway</button>
+            <div class="w-full py-4 px-6 mt-8">
+                <div class="max-w-7xl mx-auto">
+                    <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-black text-[#003399]">TRADING LAB</h2><div class="flex gap-3"><button onclick="refreshLab()" class="px-4 py-2 bg-gray-100 rounded-full text-xs font-bold hover:bg-gray-200 transition"><i class="bi bi-arrow-clockwise"></i> Refresh</button><button onclick="resetPortfolio()" class="px-4 py-2 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition"><i class="bi bi-trash"></i> Reset</button></div></div>
+                    <div class="grid grid-cols-4 gap-3 mb-4"><div class="compact-stat"><div class="text-xs text-gray-500 mb-1">Total Assets</div><div class="text-xl font-black text-[#003399]" id="total-assets">$100,000</div></div><div class="compact-stat"><div class="text-xs text-gray-500 mb-1">Cash</div><div class="text-lg font-bold" id="available-cash">$100,000</div></div><div class="compact-stat"><div class="text-xs text-gray-500 mb-1">Profit</div><div class="text-lg font-bold price-up" id="total-profit">$0</div></div><div class="compact-stat"><div class="text-xs text-gray-500 mb-1">Return</div><div class="text-lg font-bold price-up" id="return-rate">0%</div></div></div>
+                    <div class="grid grid-cols-12 gap-4">
+                        <div class="col-span-3"><div class="lab-panel" style="max-height: 520px;"><h3 class="text-sm font-bold mb-3">Stock Pool</h3><select id="sector-select" onchange="loadSectorStocks()" class="w-full p-2 border rounded-lg text-sm mb-3"><option value="Popular">Popular Stocks</option><option value="Tech">Technology</option><option value="Energy">New Energy</option><option value="Finance">Finance</option></select><div id="stock-list" class="space-y-2 overflow-y-auto" style="max-height: 420px;"><div class="text-center text-gray-400 py-8 text-sm">Loading...</div></div></div></div>
+                        <div class="col-span-6 space-y-4">
+                            <div class="lab-panel"><div class="flex justify-between items-center mb-3"><h3 class="text-sm font-bold" id="chart-title">Select a stock</h3><div class="flex gap-2"><button onclick="changeTimeRange(60)" class="px-3 py-1 text-xs rounded-lg bg-gray-100 hover:bg-gray-200">60D</button><button onclick="changeTimeRange(120)" class="px-3 py-1 text-xs rounded-lg bg-gray-100 hover:bg-gray-200">120D</button><button onclick="changeTimeRange(250)" class="px-3 py-1 text-xs rounded-lg bg-gray-100 hover:bg-gray-200">250D</button></div></div><div id="kline-chart" style="height: 300px;"></div></div>
+                            <div class="lab-panel"><h3 class="text-sm font-bold mb-3">Trade</h3><div class="grid grid-cols-4 gap-3 mb-4"><div><label class="block text-xs font-bold mb-1">Symbol</label><input type="text" id="trade-symbol" readonly class="w-full p-2 border rounded-lg bg-gray-50 text-sm"></div><div><label class="block text-xs font-bold mb-1">Price</label><input type="text" id="trade-price" readonly class="w-full p-2 border rounded-lg bg-gray-50 text-sm"></div><div><label class="block text-xs font-bold mb-1">Shares</label><input type="number" id="trade-shares" min="100" step="100" class="w-full p-2 border rounded-lg text-sm" placeholder="100" oninput="calculateTotal()"></div><div><label class="block text-xs font-bold mb-1">Total</label><input type="text" id="trade-total" readonly class="w-full p-2 border rounded-lg bg-gray-50 text-sm"></div></div><div class="flex gap-3"><button onclick="executeTrade('buy')" class="flex-1 trade-btn buy text-sm py-2"><i class="bi bi-arrow-up-circle"></i> BUY</button><button onclick="executeTrade('sell')" class="flex-1 trade-btn sell text-sm py-2"><i class="bi bi-arrow-down-circle"></i> SELL</button></div></div>
+                        </div>
+                        <div class="col-span-3 space-y-4"><div class="lab-panel" style="max-height: 250px;"><h3 class="text-sm font-bold mb-3">Holdings</h3><div id="holdings-list" class="space-y-2 overflow-y-auto" style="max-height: 180px;"><div class="text-center text-gray-400 py-4 text-xs">No holdings</div></div></div><div class="lab-panel" style="max-height: 250px;"><h3 class="text-sm font-bold mb-3">History</h3><div id="history-list" class="space-y-2 overflow-y-auto" style="max-height: 180px;"><div class="text-center text-gray-400 py-4 text-xs">No trades</div></div></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GUIDE COMPONENT (New) -->
+        <div id="lab-guide" class="w-full h-full hidden overflow-y-auto custom-scroll bg-white">
+            <div class="max-w-3xl mx-auto py-20 px-6">
+                <button onclick="setLabView('gateway')" class="mb-8 text-xs font-black uppercase text-gray-400 hover:text-[#003399]">← Back to Choice</button>
+                <div class="space-y-12">
+                    <div class="text-center">
+                        <span id="guide-step-indicator" class="text-[#003399] font-bold tracking-widest uppercase text-xs">Step 1 of 3</span>
+                        <h2 id="guide-title" class="text-4xl font-black mt-4 mb-6">The Concept of Ownership</h2>
+                        <p id="guide-desc" class="text-gray-500 text-lg leading-relaxed">Buying a stock isn't just betting on numbers. It means you legally own a small piece of that company's future earnings and assets.</p>
+                    </div>
+                    
+                    <!-- Dynamic Content Area -->
+                    <div id="guide-content" class="min-h-[250px] flex flex-col items-center justify-center p-10 bg-gray-50 rounded-[40px] border-2 border-gray-100">
+                        <!-- Default Step 1 Content -->
+                        <div class="text-center">
+                            <div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl text-[#003399] shadow-inner"><i class="bi bi-building-check"></i></div>
+                            <p class="font-bold text-gray-700 text-xl">Example: Buying 1 share of Moutai means you are a shareholder.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center gap-4">
+                        <button id="guide-prev-btn" onclick="prevGuideStep()" class="hidden px-8 py-4 bg-gray-100 text-gray-500 rounded-full font-bold hover:bg-gray-200 transition">Back</button>
+                        <button id="guide-next-btn" onclick="nextGuideStep()" class="px-10 py-4 bg-[#003399] text-white rounded-full font-bold shadow-xl hover:scale-105 transition">Next Step →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main id="view-agent" class="page-view view-hidden">
+        <div id="agent-chat-container">
+            <div class="agent-sidebar"><button onclick="newChat()" class="w-full px-4 py-3 bg-[#003399] text-white rounded-xl font-bold mb-4 hover:bg-[#002266] transition text-sm"><i class="bi bi-plus-lg"></i> New Chat</button><div class="mb-4"><h3 class="text-xs font-black uppercase text-gray-500 mb-2">Recent</h3><div id="chat-sessions" class="space-y-1"><div class="text-xs text-gray-400 p-2">No history</div></div></div></div>
+            <div class="agent-main"><div class="agent-header"><div><h2 class="text-xl font-black text-[#003399]">U2CHAT</h2><p class="text-sm text-gray-500">Stock analysis powered by DeepSeek-V3, LangChain-1.1 & AkShare (RAG-Enabled)</p></div><button onclick="clearChat()" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700"><i class="bi bi-trash"></i> Clear</button></div><div class="px-8 py-3 bg-gray-50 border-b border-gray-200"><div class="stock-selector"><div class="flex justify-between items-center mb-2"><span class="text-sm font-bold text-gray-700">Quick Select</span><select id="agent-sector" onchange="loadAgentStocks()" class="text-sm p-2 border rounded-lg"><option value="Popular">Popular</option><option value="Tech">Technology</option><option value="Energy">New Energy</option><option value="Finance">Finance</option></select></div><div id="agent-stock-tags" class="flex flex-wrap"></div></div><div id="selected-stocks" class="flex flex-wrap gap-2 mt-2"></div></div><div class="agent-messages" id="agent-messages"><div class="text-center py-20"><div class="text-6xl mb-4">💬</div><h3 class="text-2xl font-bold text-gray-700 mb-2">Start a conversation</h3><p class="text-gray-500">Ask about stocks, trends, or strategies</p></div></div><div class="agent-input-area"><div class="agent-input-box"><textarea id="agent-input" rows="1" placeholder="Ask about stocks..." onkeydown="handleAgentKey(event)" oninput="autoResize(this)"></textarea><button id="send-btn" onclick="sendMessage()" class="send-btn active"><i class="bi bi-send-fill"></i></button></div><div class="text-xs text-gray-400 mt-2 text-center">Press Enter to send, Shift+Enter for new line</div></div></div>
+        </div>
+    </main>
+
+    <div id="confirm-modal">
+        <div class="modal-box"><h3 id="modal-title" class="text-xl font-black mb-4 uppercase text-[#003399]">Confirm?</h3><p id="modal-desc" class="text-gray-500 text-sm mb-10"></p><div class="flex justify-center space-x-4"><button onclick="closeConfirm()" class="px-8 py-3 text-xs font-bold text-gray-400">Cancel</button><button id="modal-ok" class="px-10 py-3 bg-[#003399] text-white rounded-full text-xs font-black uppercase">Confirm</button></div></div>
+    </div>
+
+    <div id="node-modal">
+        <div class="bg-white p-10 rounded-[40px] w-96 shadow-2xl border-2 border-[#003399]"><h3 class="text-xl font-black text-[#003399] mb-6 uppercase">Add Concept</h3><input type="text" id="node-input" class="w-full p-4 bg-gray-50 rounded-2xl mb-6 outline-none border focus:ring-2 focus:ring-[#003399]" placeholder="Topic name..."><div class="flex justify-end space-x-4"><button onclick="closeNodeModal()" class="px-6 py-2 text-xs font-bold text-gray-400">Cancel</button><button onclick="addCustomNode()" class="px-8 py-3 bg-[#003399] text-white rounded-full text-xs font-bold">Add Node</button></div></div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-black text-white px-8 py-3 rounded-full text-xs font-bold opacity-0 transition-opacity pointer-events-none z-[9999]">SUCCESS</div>
+
+    <script>
+        let currentID = null, masterData = [], currentSort = 'top', roadmapMode = 'auto';
+        let customNodes = [], customLinks = [], activePort = null;
+        let replyingToId = null;
+        const likedIds = new Set(), likedReplyIds = new Set();
+
+        async function loadData() {
+            try {
+                const res = await fetch('/api/academy'); masterData = await res.json();
+                document.getElementById('grid-blocks').innerHTML = masterData.map(d => `
+                <div class="k-card cursor-pointer group flex flex-col h-full" onclick="openModule(${d.id})">
+                    <div class="relative overflow-hidden h-52 bg-gray-100"><img src="/static/images/academy/${d.id}.jpg" onerror="this.onerror=null; this.src='https://placehold.co/600x400/e0f2fe/0369a1?text=${d.cat}';" class="w-full h-full object-cover group-hover:scale-110 transition duration-700">${d.completed ? '<div class="absolute top-4 right-4 bg-green-500 text-white p-2 rounded-full shadow-lg"><i class="bi bi-check-lg"></i></div>' : ''}</div>
+                    <div class="p-8 flex-grow flex flex-col justify-between"><div><span class="text-[10px] font-black uppercase tracking-widest text-gray-400">${d.cat}</span><h4 class="font-bold text-xl mt-3 mb-6 group-hover:text-[#003399] leading-tight transition">${d.name}</h4></div><div class="flex justify-between items-center text-xs font-bold uppercase"><span class="text-gray-300">${d.views} STUDENTS</span><span class="transition-all duration-300 group-hover:text-[#33CCFF] group-hover:translate-x-2 text-gray-400">START →</span></div></div>
+                </div>`).join('');
+            } catch (err) { console.error('Academy load error:', err); }
+        }
+
+        async function openModule(id) {
+            try {
+                const res = await fetch(`/api/academy/${id}`); const d = await res.json(); currentID = id;
+                document.getElementById('mod-name').innerText = d.name;
+                document.getElementById('avg-rating').innerText = d.avg_rating || "0.0";
+                document.getElementById('video-target').innerHTML = `<iframe src="https://www.youtube.com/embed/${d.video}?hl=en" frameborder="0" allowfullscreen></iframe>`;
+                
+                document.getElementById('mod-intro').innerText = d.video_intro || "";
+                document.getElementById('mod-outcomes').innerHTML = (d.outcomes || []).map(o => `<div class="flex items-start gap-2"><i class="bi bi-check-circle-fill text-green-500 mt-1 flex-shrink-0"></i><span class="text-sm font-bold text-gray-700">${o}</span></div>`).join('');
+                document.getElementById('mod-takeaways').innerHTML = (d.takeaways || []).map(t => `<div class="flex items-start gap-2"><i class="bi bi-lightbulb-fill text-yellow-500 mt-1 flex-shrink-0"></i><span class="text-sm font-bold text-gray-700">${t}</span></div>`).join('');
+
+                const currentUrl = window.location.origin + "/module/" + id; const shareText = encodeURIComponent("Check out this course on U2INVEST: " + d.name);
+                document.getElementById('share-url-text').innerText = currentUrl;
+                document.getElementById('share-whatsapp').href = `https://api.whatsapp.com/send?text=${shareText}%20${currentUrl}`;
+                document.getElementById('share-facebook').href = `https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`;
+                document.getElementById('share-x').href = `https://twitter.com/intent/tweet?text=${shareText}&url=${currentUrl}`;
+                document.getElementById('share-linkedin').href = `https://www.linkedin.com/sharing/share-offsite/?url=${currentUrl}`;
+                document.getElementById('share-email').href = `mailto:?subject=${d.name}&body=${shareText}%20${currentUrl}`;
+                renderStatusBox(d.completed); renderComments(d.comments);
+                const overlay = document.getElementById('overlay'); overlay.style.display = 'block'; setTimeout(() => overlay.classList.add('active'), 10);
+            } catch(err) { console.error("Open module error:", err); }
+        }
+
+        function openShare() { document.getElementById('share-modal').style.display = 'flex'; }
+        function closeShare() { document.getElementById('share-modal').style.display = 'none'; }
+        function copyLink() { navigator.clipboard.writeText(document.getElementById('share-url-text').innerText).then(() => showToast("LINK COPIED")); }
+
+        function renderComments(list) {
+            let sorted = [...list]; if(currentSort === 'top') sorted.sort((a,b) => b.likes - a.likes); else sorted.sort((a,b) => b.timestamp - a.timestamp);
+            document.getElementById('comment-list').innerHTML = sorted.map(c => `
+                <div class="flex gap-4 group"><div class="yt-avatar">${c.user[0]}</div><div class="flex-grow"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-bold">@${c.user}</span><span class="text-xs text-[#606060]">2 hours ago</span></div><div class="text-sm text-[#0f0f0f] leading-relaxed mb-3">${c.text}</div><div class="flex items-center gap-4"><div class="yt-action-btn" onclick="toggleLike('${c.id}')"><i class="bi ${likedIds.has(c.id)?'bi-hand-thumbs-up-fill text-black':'bi-hand-thumbs-up'}"></i><span>${c.likes}</span></div><div class="yt-action-btn"><i class="bi bi-hand-thumbs-down"></i></div><button class="text-xs font-bold px-3 py-1.5 rounded-full hover:bg-gray-100 transition" onclick="replyAt('${c.user}', '${c.id}')">Reply</button></div>
+                ${c.replies && c.replies.length > 0 ? `<div class="mt-4 space-y-4 border-l-2 border-gray-100 pl-4">${c.replies.map(r => `
+                    <div class="flex gap-3"><div class="yt-avatar yt-avatar-sm">${r.user[0]}</div><div class="flex-grow"><div class="flex items-center gap-2 mb-0.5"><span class="text-xs font-bold">@${r.user}</span><span class="text-[10px] text-[#606060]">1 hour ago</span></div><div class="text-sm text-[#0f0f0f] mb-2">${r.text}</div><div class="flex items-center gap-3"><div class="yt-action-btn text-[11px]" onclick="toggleReplyLike('${c.id}','${r.id}')"><i class="bi ${likedReplyIds.has(r.id)?'bi-hand-thumbs-up-fill text-black':'bi-hand-thumbs-up'}"></i><span>${r.likes||0}</span></div><button class="text-[11px] font-bold hover:bg-gray-100 px-2 py-1 rounded" onclick="replyToReply('${r.user}', '${c.id}')">Reply</button></div></div></div>`).join('')}</div>` : ''}</div></div>`).join('');
+        }
+
+        function replyAt(user, commentId) { replyingToId = commentId; const indicator = document.getElementById('reply-indicator'); document.getElementById('reply-label').innerText = `Replying to @${user}`; indicator.classList.remove('hidden'); document.getElementById('cmt-input').placeholder = "Add a reply..."; document.getElementById('cmt-input').value = ""; document.getElementById('cmt-input').focus(); document.getElementById('cmt-input').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        function replyToReply(user, parentCommentId) { replyingToId = parentCommentId; const indicator = document.getElementById('reply-indicator'); document.getElementById('reply-label').innerText = `Replying to @${user}`; indicator.classList.remove('hidden'); document.getElementById('cmt-input').value = `@${user} `; document.getElementById('cmt-input').focus(); document.getElementById('cmt-input').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        function cancelReply() { replyingToId = null; document.getElementById('reply-indicator').classList.add('hidden'); document.getElementById('cmt-input').placeholder = "Add a comment..."; document.getElementById('cmt-input').value = ""; document.getElementById('cmt-input').style.height = '40px'; }
+        async function postComment() { const txt = document.getElementById('cmt-input').value; if(!txt.trim()) return; const res = await fetch('/api/comment', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: currentID, text: txt, parentId: replyingToId}) }); if(res.ok) { const d = await res.json(); renderComments(d.comments); cancelReply(); showToast("POSTED"); } }
+
+        function setRoadmapMode(mode) {
+            roadmapMode = mode; document.getElementById('btn-mode-auto').className = `px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all ${mode==='auto'?'bg-white shadow text-[#003399]':'text-gray-400'}`; document.getElementById('btn-mode-custom').className = `px-6 py-2 rounded-full text-[10px] font-black uppercase transition-all ${mode==='custom'?'bg-white shadow text-[#003399]':'text-gray-400'}`;
+            document.getElementById('btn-add-node').classList.toggle('hidden', mode !== 'custom'); document.getElementById('legend-auto').classList.toggle('hidden', mode !== 'auto'); document.getElementById('legend-custom').classList.toggle('hidden', mode !== 'custom');
+            initRoadmap();
+        }
+
+                                        function initRoadmap() {
+
+                                            const svg = d3.select("#roadmap-svg"); svg.selectAll("*").remove();
+
+                                            const box = document.getElementById('roadmap-box');
+
+                                            const width = box.clientWidth, height = box.clientHeight;
+
+                                            const center = { x: width/2, y: height/2 };
+
+                                
+
+                                            // 1. Defs: Glow & Gradients
+
+                                            const defs = svg.append("defs");
+
+                                            const filter = defs.append("filter").attr("id", "sun-glow");
+
+                                            filter.append("feGaussianBlur").attr("stdDeviation", "8").attr("result", "coloredBlur");
+
+                                            const feMerge = filter.append("feMerge");
+
+                                            feMerge.append("feMergeNode").attr("in", "coloredBlur");
+
+                                            feMerge.append("feMergeNode").attr("in", "SourceGraphic");
+
+                                
+
+                                            const g = svg.append("g").attr("class", "zoom-container")
+
+                                                .attr("transform", `translate(${center.x},${center.y})`);
+
+                                
+
+                                            svg.call(d3.zoom().scaleExtent([0.1, 4]).on("zoom", (e) => {
+
+                                                g.attr("transform", `translate(${center.x + e.transform.x},${center.y + e.transform.y}) scale(${e.transform.k})`);
+
+                                            }));
+
+                                
+
+                                            if(roadmapMode === 'custom') return renderCustomRoadmap(g, svg);
+
+                                
+
+                                            // Helper: Summarize Title
+
+                                            const summarize = (str) => {
+
+                                                const stops = ["Understanding", "Introduction", "to", "The", "Basics", "of", "How", "Works", "What", "is", "a", "Explained"];
+
+                                                const words = str.split(' ').filter(w => !stops.includes(w));
+
+                                                return words.slice(0, 3).join(' ');
+
+                                            };
+
+                                
+
+                                            // 2. Data Hierarchy Building
+
+                                            const catMap = {
+
+                                                "Foundations": "FOUNDATIONS", "Economics": "FOUNDATIONS", "Regulations": "FOUNDATIONS",
+
+                                                "Analysis": "ANALYSIS",
+
+                                                "Strategy": "STRATEGY", "Psychology": "ADVANCED",
+
+                                                "Advanced": "ADVANCED"
+
+                                            };
+
+                                            const subThemes = {
+
+                                                "FOUNDATIONS": ["Basics", "Mechanics", "Macro"],
+
+                                                "ANALYSIS": ["Financials", "Technical", "Valuation"],
+
+                                                "STRATEGY": ["Portfolios", "Trading", "Risk"],
+
+                                                "ADVANCED": ["Derivatives", "Global", "Psychology"]
+
+                                            };
+
+                                
+
+                                            const rootData = { name: "Academy", type: "core", children: [] };
+
+                                            const catNodes = {};
+
+                                            
+
+                                            // Create Categories
+
+                                            ["FOUNDATIONS", "ANALYSIS", "STRATEGY", "ADVANCED"].forEach(c => {
+
+                                                const node = { name: c, type: "category", children: [] };
+
+                                                rootData.children.push(node);
+
+                                                catNodes[c] = node;
+
+                                                subThemes[c].forEach(st => {
+
+                                                    node.children.push({ name: st, type: "subtheme", children: [] });
+
+                                                });
+
+                                            });
+
+                                
+
+                                            // Distribute Modules
+
+                                            const findSubNode = (cat, subName) => catNodes[cat].children.find(c => c.name === subName);
+
+                                            masterData.forEach((m, i) => {
+
+                                                const cName = catMap[m.cat] || "ADVANCED";
+
+                                                const themes = subThemes[cName];
+
+                                                const targetSub = themes[i % themes.length];
+
+                                                const p = findSubNode(cName, targetSub);
+
+                                                // Summarize Name Here
+
+                                                if(p) p.children.push({ ...m, name: summarize(m.name), type: "module", full_name: m.name });
+
+                                            });
+
+                                
+
+                                            // 3. Layout Initialization
+
+                                            const root = d3.hierarchy(rootData);
+
+                                            
+
+                                            // Increased Radii for Horizontal Text
+
+                                            const R_CAT = 140;
+
+                                            const R_SUB = 260;
+
+                                            const R_MOD = 420; // Pushed out for spacing
+
+                                
+
+                                            const treeLayout = d3.tree().size([2 * Math.PI, R_MOD]);
+
+                                            treeLayout(root);
+
+                                
+
+                                            const nodes = root.descendants();
+
+                                            const links = root.links();
+
+                                
+
+                                            nodes.forEach(d => {
+
+                                                const angle = d.x - Math.PI / 2;
+
+                                                const r = d.depth === 0 ? 0 : (d.depth === 1 ? R_CAT : (d.depth === 2 ? R_SUB : R_MOD + (Math.random()*60-30))); 
+
+                                                d.x = Math.cos(angle) * r;
+
+                                                d.y = Math.sin(angle) * r;
+
+                                                // Increased Node Sizes
+
+                                                d.r = d.depth === 0 ? 40 : (d.depth === 1 ? 18 : (d.depth === 2 ? 8 : 8)); // Modules: 4->8 (Double size)
+
+                                            });
+
+                                
+
+                                            // 4. Visuals
+
+                                            const orbits = [R_CAT, R_SUB, R_MOD];
+
+                                            g.append("g").attr("class", "orbits")
+
+                                                .selectAll("circle").data(orbits).join("circle")
+
+                                                .attr("r", d => d).attr("fill", "none").attr("stroke", "#e2e8f0").attr("stroke-width", 1).attr("stroke-dasharray", "4 4");
+
+                                
+
+                                            // 5. Force Simulation with Label Collision Logic
+
+                                            const simulation = d3.forceSimulation(nodes)
+
+                                                .force("link", d3.forceLink(links).id(d => d.id).strength(0.8)) 
+
+                                                .force("charge", d3.forceManyBody().strength(d => d.depth === 0 ? -1500 : -100))
+
+                                                // Large collision radius to account for horizontal text width (~60px)
+
+                                                .force("collide", d3.forceCollide(d => d.depth === 3 ? 45 : d.r + 20)) 
+
+                                                .force("radial", d3.forceRadial(d => {
+
+                                                    if(d.depth === 0) return 0;
+
+                                                    if(d.depth === 1) return R_CAT;
+
+                                                    if(d.depth === 2) return R_SUB;
+
+                                                    return R_MOD;
+
+                                                }, 0, 0).strength(0.8));
+
+                                
+
+                                            // 6. Draw Links
+
+                                            const link = g.append("g").selectAll("path")
+
+                                                .data(links).join("path")
+
+                                                .attr("fill", "none").attr("stroke", "#cbd5e1")
+
+                                                .attr("stroke-width", d => d.target.depth === 1 ? 2 : 1).attr("stroke-opacity", 0.6);
+
+                                
+
+                                            // 7. Draw Nodes
+
+                                            const colorMap = { 1: "#33CCFF", 2: "#2563EB", 3: "#7C3AED" }; 
+
+                                            const node = g.append("g").selectAll("g")
+
+                                                .data(nodes).join("g")
+
+                                                .call(d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended))
+
+                                                .on("click", (e, d) => { if (d.data.type === "module") openModule(d.data.id); });
+
+                                
+
+                                            node.append("circle")
+
+                                                .attr("r", d => d.r)
+
+                                                .attr("fill", d => {
+
+                                                    if(d.depth === 0) return "#FFD60A";
+
+                                                    if(d.depth === 1) return "#fff";
+
+                                                    if(d.depth === 2) return "#94a3b8";
+
+                                                    if(d.data.completed) return "#10b981";
+
+                                                    return colorMap[d.data.difficulty] || "#003399";
+
+                                                })
+
+                                                .attr("stroke", d => d.depth === 1 ? "#003399" : "#fff")
+
+                                                .attr("stroke-width", d => d.depth === 1 ? 3 : 2) // Thicker stroke
+
+                                                .style("filter", d => d.depth === 0 ? "url(#sun-glow)" : "")
+
+                                                .style("cursor", d => d.data.type === "module" ? "pointer" : "default");
+
+                                
+
+                                            // 8. Labels (Horizontal & Collision Aware)
+
+                                            const label = g.append("g").selectAll("text")
+
+                                                .data(nodes.filter(d => d.depth > 0)) 
+
+                                                .join("text")
+
+                                                .text(d => d.data.name) // Already summarized
+
+                                                .attr("class", d => {
+
+                                                    if(d.depth === 1) return "text-[10px] font-black fill-gray-600 uppercase tracking-widest";
+
+                                                    if(d.depth === 2) return "text-[9px] font-bold fill-gray-400 uppercase";
+
+                                                    return "text-[9px] font-bold fill-gray-700"; // Bolder font
+
+                                                })
+
+                                                .attr("text-anchor", "middle")
+
+                                                .attr("dy", d => d.depth === 3 ? "1.5em" : "0.35em") // Modules: Text below node
+
+                                                .style("text-shadow", "0 2px 4px white, 0 0 4px white")
+
+                                                .style("pointer-events", "none"); // Click-through to node
+
+                                            
+
+                                            g.append("text").attr("text-anchor", "middle").attr("dy", "0.35em")
+
+                                                .text("ACADEMY").attr("class", "text-[10px] font-black fill-[#b45309] uppercase tracking-widest pointer-events-none");
+
+                                
+
+                                            // Tick Update
+
+                                            simulation.on("tick", () => {
+
+                                                link.attr("d", d => `M${d.source.x},${d.source.y}L${d.target.x},${d.target.y}`);
+
+                                                node.attr("transform", d => `translate(${d.x},${d.y})`);
+
+                                                
+
+                                                // Simple Horizontal Labels attached to nodes
+
+                                                label.attr("x", d => d.x).attr("y", d => d.y);
+
+                                            });
+
+                                
+
+                                            function dragstarted(event, d) { if (!event.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+
+                                            function dragged(event, d) { d.fx = event.x; d.fy = event.y; }
+
+                                            function dragended(event, d) { if (!event.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; }
+
+                                        }
+
+        function renderCustomRoadmap(g, svg) {
+            svg.attr("class", "w-full h-full bg-slate-900 rounded-[40px]"); if(customNodes.length === 0) customNodes = masterData.slice(0, 4).map((d,i) => ({...d, x: 200+i*250, y: 300})); const gLinks = g.append("g"), gNodes = g.append("g");
+            const update = () => {
+                const linkGen = d => { const midX = (d.source.x + d.target.x) / 2; return `M ${d.source.x+70} ${d.source.y} C ${midX} ${d.source.y}, ${midX} ${d.target.y}, ${d.target.x-70} ${d.target.y}`; };
+                gLinks.selectAll(".custom-line").data(customLinks).join("path").attr("class", "custom-line").attr("d", linkGen).on("click", (e, d) => { d3.selectAll(".custom-line").classed("active", false); d3.select(e.target).classed("active", true); openConfirm("Disconnect?", "Break this link?", () => { customLinks = customLinks.filter(l => l !== d); update(); }); });
+                gNodes.selectAll("g.node-unit").data(customNodes, d => d.id).join(enter => {
+                    const grp = enter.append("g").attr("class", "node-unit").on("dblclick", (e, d) => openConfirm("Delete?", `Remove "${d.name}"?`, () => { customNodes = customNodes.filter(n => n.id !== d.id); customLinks = customLinks.filter(l => l.source.id !== d.id && l.target.id !== d.id); initRoadmap(); })).call(d3.drag().on("drag", (e, d) => { d.x = e.x; d.y = e.y; grp.attr("transform", `translate(${d.x},${d.y})`); update(); }));
+                    grp.append("rect").attr("width", 140).attr("height", 50).attr("x", -70).attr("y", -25).attr("rx", 15).attr("fill", "#1e293b").attr("stroke", "#334155").attr("stroke-width", 2); grp.append("text").attr("text-anchor", "middle").attr("dy", 5).attr("fill", "#fff").attr("class", "text-[9px] font-black").text(d => d.name);
+                    grp.append("circle").attr("class", "node-port out").attr("r", 6).attr("cx", 70).on("click", function(e, d) { e.stopPropagation(); resetPorts(); activePort = {node: d, type: 'out'}; d3.select(this).classed("active", true); });
+                    grp.append("circle").attr("class", "node-port in").attr("r", 6).attr("cx", -70).on("click", function(e, d) { e.stopPropagation(); if(activePort && activePort.node !== d && activePort.type === 'out') { const source = activePort.node; d3.select(this).classed("active", true); openConfirm("Link?", `Connect to "${d.name}"?`, () => { customLinks.push({source: source, target: d}); resetPorts(); update(); }, resetPorts); } });
+                    return grp;
+                }).attr("transform", d => `translate(${d.x},${d.y})`);
+            }; update();
+        }
+
+        function resetPorts() { d3.selectAll(".node-port").classed("active", false); activePort = null; }
+        function openConfirm(title, desc, onOk, onCancel) { const m = document.getElementById('confirm-modal'); document.getElementById('modal-title').innerText = title; document.getElementById('modal-desc').innerText = desc; m.style.display = 'flex'; document.getElementById('modal-ok').onclick = () => { m.style.display = 'none'; onOk(); }; window.closeConfirm = () => { m.style.display = 'none'; if(onCancel) onCancel(); }; }
+        function openNodeModal() { document.getElementById('node-modal').style.display = 'flex'; }
+        function closeNodeModal() { document.getElementById('node-modal').style.display = 'none'; }
+        function addCustomNode() { const val = document.getElementById('node-input').value; if(!val) return; customNodes.push({id: "c-"+Date.now(), name: val, x: 200, y: 200}); closeNodeModal(); document.getElementById('node-input').value=''; initRoadmap(); }
+        
+        function switchAcademy(tab) { document.getElementById('grid-blocks').classList.toggle('hidden', tab !== 'blocks'); document.getElementById('roadmap-box').classList.toggle('hidden', tab !== 'roadmap'); document.getElementById('roadmap-controls').classList.toggle('hidden', tab !== 'roadmap'); document.getElementById('tab-blocks').classList.toggle('active', tab === 'blocks'); document.getElementById('tab-roadmap').classList.toggle('active', tab === 'roadmap'); if(tab === 'roadmap') setTimeout(initRoadmap, 50); }
+        function closeModule() { 
+            document.getElementById('video-target').innerHTML = '';
+            document.getElementById('overlay').classList.remove('active'); 
+            setTimeout(() => { document.getElementById('overlay').style.display = 'none'; }, 500); 
+        }
+        function renderStatusBox(isDone) { 
+            const box = document.getElementById('status-box'); 
+            box.className = isDone ? "p-16 rounded-[50px] text-center border-2 border-green-200 bg-green-50 mb-20 shadow-inner" : "p-16 rounded-[50px] text-center border-2 border-dashed border-gray-200 bg-gray-50 mb-20"; 
+            box.innerHTML = isDone ? 
+                `<div class="text-green-600 mb-6"><i class="bi bi-patch-check-fill text-6xl"></i></div><h3 class="text-3xl font-black mb-8">Lesson Mastered!</h3><div class="flex justify-center items-center gap-4"><button onclick="toggleStatus(false)" class="px-8 py-3 border text-gray-400 rounded-full text-xs font-bold hover:text-black transition">Reset</button><button onclick="closeModule(); switchAcademy('roadmap')" class="px-8 py-3 bg-[#003399] text-white rounded-full text-xs font-bold uppercase shadow-lg hover:bg-blue-800 transition">View Roadmap →</button></div>` : 
+                `<h3 class="text-3xl font-black mb-8 text-gray-400">NOT COMPLETED</h3><button onclick="toggleStatus(true)" class="px-12 py-5 bg-[#003399] text-white rounded-full text-xs font-black uppercase shadow-xl">Mark as Completed</button>`; 
+        }
+        async function toggleStatus(isDone) { await fetch('/api/complete', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id: currentID, status: isDone}) }); renderStatusBox(isDone); loadData(); }
+        function sortComments(type) { currentSort = type; document.getElementById('sort-top').classList.toggle('active', type === 'top'); document.getElementById('sort-newest').classList.toggle('active', type === 'newest'); fetch(`/api/academy/${currentID}`).then(r => r.json()).then(d => renderComments(d.comments)); }
+        function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 2000); }
+
+        // --- Lab Logic ---
+        let currentStock = null, currentPrice = 0, klineChart = null, selectedStocks = []; let portfolioData = { cash: 100000, holdings: {}, history: [] };
+        async function loadLabData() { try { await loadSectorStocks(); const res = await fetch('/api/lab/portfolio'); if (res.ok) { portfolioData = await res.json(); updatePortfolioUI(); } initKlineChart(); } catch (err) { console.error('Lab load error:', err); } }
+        async function loadSectorStocks() { const sector = document.getElementById('sector-select').value; const stockList = document.getElementById('stock-list'); try { const poolRes = await fetch('/api/lab/stocks'); const stockPool = await poolRes.json(); const symbols = stockPool[sector] || []; const quoteRes = await fetch(`/api/lab/quote?symbols=${symbols.join(',')}`); const quoteData = await quoteRes.json(); stockList.innerHTML = ''; quoteData.data.forEach(stock => { const changeClass = stock.change >= 0 ? 'price-up' : 'price-down'; const changeIcon = stock.change >= 0 ? '▲' : '▼'; const card = document.createElement('div'); card.className = 'stock-card'; card.onclick = () => selectStock(stock); card.innerHTML = `<div class="flex justify-between items-start mb-1"><div><div class="font-bold text-xs">${stock.name}</div><div class="text-[10px] text-gray-400">${stock.symbol}</div></div><div class="text-right"><div class="font-black text-sm">$${stock.price.toFixed(2)}</div><div class="text-[10px] ${changeClass}">${changeIcon} ${stock.change_pct.toFixed(2)}%</div></div></div>`; stockList.appendChild(card); }); } catch (err) { stockList.innerHTML = '<div class="text-center text-red-500 p-4 text-xs">Failed to load</div>'; } }
+        function selectStock(stock) { currentStock = stock; currentPrice = stock.price; document.querySelectorAll('.stock-card').forEach(el => el.classList.remove('selected')); event.currentTarget.classList.add('selected'); document.getElementById('chart-title').innerText = `${stock.name} (${stock.symbol})`; document.getElementById('trade-symbol').value = stock.symbol; document.getElementById('trade-price').value = `$${stock.price.toFixed(2)}`; loadKlineData(stock.symbol); }
+        function initKlineChart() { klineChart = echarts.init(document.getElementById('kline-chart')); klineChart.setOption({ title: { text: 'Select a stock', left: 'center', top: 'center', textStyle: { color: '#999', fontSize: 14 } }, grid: { left: 60, right: 60, top: 40, bottom: 60 } }); }
+        async function loadKlineData(symbol, days = 60) { try { const res = await fetch(`/api/lab/kline?symbol=${symbol}&days=${days}`); const data = await res.json(); const dates = data.data.map(d => d.date); const values = data.data.map(d => [d.open, d.close, d.low, d.high]); klineChart.setOption({ xAxis: { type: 'category', data: dates }, yAxis: { scale: true }, series: [{ type: 'candlestick', data: values, itemStyle: { color: '#ef4444', color0: '#10b981' } }] }); } catch (err) {} }
+        function calculateTotal() { const shares = parseInt(document.getElementById('trade-shares').value) || 0; document.getElementById('trade-total').value = `$${(shares * currentPrice).toFixed(2)}`; }
+        async function executeTrade(action) { const symbol = document.getElementById('trade-symbol').value; const shares = parseInt(document.getElementById('trade-shares').value); if (!symbol || !shares || shares < 100) { alert('Invalid trade'); return; } try { const res = await fetch('/api/lab/trade', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, symbol, shares, price: currentPrice }) }); const data = await res.json(); if (data.status === 'success') { showToast(action.toUpperCase() + ' SUCCESS'); loadLabData(); document.getElementById('trade-shares').value = ''; } else { alert(data.message); } } catch (err) { alert('Trade failed'); } }
+        function updatePortfolioUI() { const totalAssets = portfolioData.cash + Object.values(portfolioData.holdings).reduce((sum, h) => sum + (h.shares * h.avg_price), 0); document.getElementById('total-assets').innerText = `$${totalAssets.toLocaleString()}`; document.getElementById('available-cash').innerText = `$${portfolioData.cash.toLocaleString()}`; const profit = totalAssets - 100000; document.getElementById('total-profit').innerText = `$${profit.toLocaleString()}`; document.getElementById('total-profit').className = profit >= 0 ? 'text-lg font-bold price-up' : 'text-lg font-bold price-down'; const hList = document.getElementById('holdings-list'); hList.innerHTML = Object.entries(portfolioData.holdings).length ? Object.entries(portfolioData.holdings).map(([s, h]) => `<div class="holding-card"><div class="flex justify-between items-center"><div><div class="font-bold text-xs">${s}</div><div class="text-[10px] text-gray-500">${h.shares} @ $${h.avg_price.toFixed(2)}</div></div><div class="text-xs font-bold">$${(h.shares * h.avg_price).toFixed(2)}</div></div></div>`).join('') : '<div class="text-center text-gray-400 py-4 text-xs">No holdings</div>'; }
+        async function resetPortfolio() { if (confirm('Reset portfolio?')) { await fetch('/api/lab/reset', { method: 'POST' }); loadLabData(); } }
+        function refreshLab() { loadLabData(); showToast('REFRESHED'); }
+
+        // --- Agent Logic (Refactored) ---
+        let currentSessionId = null; 
+        let isGenerating = false;
+        let abortController = null;
+
+        async function loadAgentData() { 
+            loadAgentStocks(); 
+            loadChatSessions(); 
+        }
+
+        async function loadAgentStocks() { 
+            const sector = document.getElementById('agent-sector').value; 
+            try { 
+                const poolRes = await fetch('/api/lab/stocks'); 
+                const stockPool = await poolRes.json(); 
+                const symbols = stockPool[sector] || []; 
+                const quoteRes = await fetch(`/api/lab/quote?symbols=${symbols.join(',')}`); 
+                const quoteData = await quoteRes.json(); 
+                document.getElementById('agent-stock-tags').innerHTML = quoteData.data.map(stock => `<div class="stock-tag" onclick="addStockToChat({name:'${stock.name}',symbol:'${stock.symbol}'})"><span>${stock.name}</span></div>`).join(''); 
+            } catch (err) {} 
+        }
+
+        function addStockToChat(stock) { 
+            if (selectedStocks.find(s => s.symbol === stock.symbol)) return; 
+            selectedStocks.push(stock); 
+            updateSelectedStocks(); 
+            const input = document.getElementById('agent-input');
+            input.value += `@${stock.name}(${stock.symbol}) `; 
+            input.focus(); 
+            autoResize(input);
+        }
+
+        function updateSelectedStocks() { 
+            document.getElementById('selected-stocks').innerHTML = selectedStocks.map((s, i) => `<div class="stock-tag"><span>${s.name}</span><i class="bi bi-x-circle" onclick="removeStock(${i})"></i></div>`).join(''); 
+        }
+
+        function removeStock(i) { selectedStocks.splice(i, 1); updateSelectedStocks(); }
+
+        async function sendMessage() { 
+            const input = document.getElementById('agent-input'); 
+            const msg = input.value.trim(); 
+            
+            if (isGenerating) {
+                // STOP Logic
+                if (abortController) abortController.abort();
+                isGenerating = false;
+                updateSendButtonState();
+                return;
+            }
+
+            if (!msg) return; 
+
+            // clear input & add user message
+            input.value = ''; 
+            autoResize(input);
+            addMessageToUI('user', msg); 
+            
+            // Start Generation
+            isGenerating = true;
+            updateSendButtonState();
+            abortController = new AbortController();
+            
+            const loadingId = addMessageToUI('assistant', '<div class="animate-pulse">Thinking...</div>'); 
+
+            try { 
+                const res = await fetch('/api/agent/chat', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ message: msg, session_id: currentSessionId }),
+                    signal: abortController.signal
+                }); 
+                
+                if (!res.ok) throw new Error("Network response was not ok");
+
+                const data = await res.json(); 
+                
+                // Update current session ID if it was new
+                if (data.session_id && currentSessionId !== data.session_id) {
+                    currentSessionId = data.session_id;
+                    loadChatSessions(); // Refresh sidebar to show new session
+                }
+
+                document.getElementById(loadingId).remove(); 
+                addMessageToUI('assistant', data.response || 'No response', data.tools_used); 
+
+            } catch (err) { 
+                document.getElementById(loadingId).remove();
+                if (err.name === 'AbortError') {
+                    addMessageToUI('assistant', '<i>Generation stopped by user.</i>');
+                } else {
+                    addMessageToUI('assistant', '<i>Error generating response. Please try again.</i>'); 
+                }
+            } finally {
+                isGenerating = false;
+                abortController = null;
+                updateSendButtonState();
+            }
+        }
+
+        function updateSendButtonState() {
+            const btn = document.getElementById('send-btn');
+            const icon = btn.querySelector('i');
+            if (isGenerating) {
+                btn.className = "send-btn stop";
+                icon.className = "bi bi-stop-fill";
+                btn.title = "Stop Generation";
+            } else {
+                btn.className = "send-btn active";
+                icon.className = "bi bi-send-fill";
+                btn.title = "Send Message";
+            }
+        }
+
+        function addMessageToUI(role, content, tools = []) { 
+            const div = document.getElementById('agent-messages'); 
+            if (div.querySelector('.text-center')) div.innerHTML = ''; 
+            
+            const id = 'msg-' + Date.now(); 
+            const b = document.createElement('div'); 
+            b.id = id; 
+            b.className = `message-bubble ${role}`; 
+            
+            // Basic Parsing for "Claude Style"
+            let formattedContent = content;
+            
+            // Extract JSON Chart block
+            const chartRegex = /```json-chart\s*([\s\S]*?)```/;
+            let chartData = null;
+            const match = content.match(chartRegex);
+            if (match) {
+                try {
+                    chartData = JSON.parse(match[1]);
+                    formattedContent = content.replace(match[0], `<div id="chart-${id}" class="chat-chart-container"></div>`);
+                } catch (e) { console.error("Chart JSON Parse Error", e); }
+            }
+
+            // Simple Markdown formatting
+            formattedContent = formattedContent
+                .replace(/^### (.*$)/gim, '<div class="msg-header">$1</div>')
+                .replace(/^- (.*$)/gim, '<li>$1</li>')
+                .replace(/(<li>.*<\/li>)/gim, '<ul class="msg-list">$1</ul>')
+                .replace(/\n/g, '<br>');
+
+            b.innerHTML = `
+                <div class="message-content">
+                    ${role === 'assistant' ? '<div class="text-[10px] font-bold text-[#003399] mb-2 uppercase tracking-widest">U2CHAT AI</div>' : ''}
+                    ${formattedContent}
+                </div>
+                <div class="message-timestamp ${role === 'user' ? 'text-right' : ''}">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+            `; 
+            
+            div.appendChild(b); 
+            div.scrollTop = div.scrollHeight; 
+
+            // Render Chart if present
+            if (chartData && role === 'assistant') {
+                setTimeout(() => renderChart(`chart-${id}`, chartData), 100);
+            }
+
+            return id; 
+        }
+
+        function renderChart(containerId, data) {
+            const chartDom = document.getElementById(containerId);
+            if (!chartDom) return;
+            const myChart = echarts.init(chartDom);
+            
+            const option = {
+                title: { text: data.title || 'Data Analysis', left: 'center', textStyle: { fontSize: 14 } },
+                tooltip: { trigger: 'axis' },
+                grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                xAxis: { type: 'category', data: data.labels || [] },
+                yAxis: { type: 'value' },
+                series: [{
+                    data: data.data || [],
+                    type: data.type || 'line',
+                    smooth: true,
+                    itemStyle: { color: '#003399' },
+                    areaStyle: { opacity: 0.1 }
+                }]
+            };
+            
+            myChart.setOption(option);
+            new ResizeObserver(() => myChart.resize()).observe(chartDom);
+        }
+
+        async function loadChatSessions() {
+            try {
+                const res = await fetch('/api/agent/sessions');
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                
+                const list = document.getElementById('chat-sessions');
+                list.innerHTML = sessions.length ? '' : '<div class="text-xs text-gray-400 p-2">No history</div>';
+                
+                sessions.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = `text-xs p-3 hover:bg-gray-100 rounded-lg cursor-pointer truncate border-b border-gray-100 transition ${currentSessionId === s.id ? 'bg-blue-50 text-[#003399] font-bold' : 'text-gray-600'}`;
+                    item.innerText = s.title;
+                    item.onclick = () => loadChatSession(s.id);
+                    list.appendChild(item);
+                });
+                
+                // If currentSessionId is null but there are sessions, verify if we should load latest? 
+                // For now, let's keep "New Chat" as default state if page reloads without persistent state.
+                
+            } catch (err) {}
+        }
+
+        async function loadChatSession(sessionId) {
+            currentSessionId = sessionId;
+            loadChatSessions(); // Update active state in sidebar
+            
+            try {
+                const res = await fetch(`/api/agent/history?session_id=${sessionId}`);
+                const data = await res.json();
+                const history = data.history || [];
+                
+                document.getElementById('agent-messages').innerHTML = '';
+                history.forEach(m => addMessageToUI(m.role, m.content));
+                
+            } catch (err) {}
+        }
+
+        async function clearChat() { 
+            if (currentSessionId && confirm('Clear this chat?')) { 
+                await fetch('/api/agent/clear', { 
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: currentSessionId })
+                }); 
+                newChat(); // Reset to new chat state
+                loadChatSessions(); // Refresh list
+            } 
+        }
+
+        function newChat() {
+            currentSessionId = null;
+            document.getElementById('agent-messages').innerHTML = '<div class="text-center py-20"><div class="text-6xl mb-4">💬</div><h3 class="text-2xl font-bold text-gray-700 mb-2">Start a conversation</h3><p class="text-gray-500">Ask about stocks, trends, or strategies</p></div>';
+            selectedStocks = [];
+            updateSelectedStocks();
+            loadChatSessions(); // Refresh list to remove active highlight
+        }
+
+        function handleAgentKey(e) { 
+            if (e.key === 'Enter' && !e.shiftKey) { 
+                e.preventDefault(); 
+                sendMessage(); 
+            } 
+        }
+
+        function autoResize(t) { 
+            t.style.height = 'auto'; 
+            t.style.height = Math.min(t.scrollHeight, 200) + 'px'; 
+        }
+        
+        // --- Guide Logic ---
+        let guideStep = 1;
+        const guideData = [
+            {
+                step: 1,
+                title: "The Concept of Ownership",
+                desc: "Buying a stock isn't just betting on numbers. It means you legally own a small piece of that company's future earnings and assets.",
+                content: `<div class="text-center"><div class="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl text-[#003399] shadow-inner"><i class="bi bi-building-check"></i></div><p class="font-bold text-gray-700 text-xl">Example: Buying 1 share of Moutai means you are a shareholder.</p></div>`
+            },
+            {
+                step: 2,
+                title: "Risk & Your $100k",
+                desc: "You have $100,000 in virtual cash. Never put it all in one basket. 'Diversification' means spreading your money across different stocks to reduce risk.",
+                content: `<div class="grid grid-cols-2 gap-8 text-center w-full max-w-md"><div class="p-8 bg-white rounded-[30px] border-2 border-green-100 shadow-sm"><i class="bi bi-pie-chart-fill text-5xl text-green-500 mb-4 block"></i><span class="text-sm font-black uppercase text-green-600">Diversified</span><p class="text-xs text-gray-400 mt-2">Safer growth</p></div><div class="p-8 bg-white rounded-[30px] border-2 border-red-100 shadow-sm"><i class="bi bi-exclamation-triangle-fill text-5xl text-red-500 mb-4 block"></i><span class="text-sm font-black uppercase text-red-600">All-in</span><p class="text-xs text-gray-400 mt-2">High risk</p></div></div>`
+            },
+            {
+                step: 3,
+                title: "How to Use the Lab",
+                desc: "1. Select a stock. 2. Check the chart. 3. Enter shares. 4. Buy.",
+                content: `<div class="bg-white p-8 rounded-[30px] border-2 border-gray-100 shadow-xl w-full max-w-sm transform hover:scale-105 transition duration-500"><div class="flex justify-between mb-6 border-b border-gray-100 pb-4"><div class="flex flex-col text-left"><span class="font-black text-lg text-gray-800">Moutai</span><span class="text-xs text-gray-400">600519</span></div><span class="text-green-500 font-black text-xl">$1800.00</span></div><div class="flex gap-3 mb-2"><input type="number" value="100" class="w-full p-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-center font-bold outline-none" disabled><button class="bg-[#10b981] text-white px-6 py-3 rounded-xl font-black shadow-lg hover:bg-green-600 transition" onclick="setLabView('dashboard')">BUY</button></div><div class="text-[10px] text-gray-400 text-center uppercase tracking-widest mt-4">Simulated Trade Panel</div></div>`
+            }
+        ];
+
+        function updateGuideUI() {
+            const data = guideData[guideStep - 1];
+            document.getElementById('guide-step-indicator').innerText = `Step ${guideStep} of 3`;
+            document.getElementById('guide-title').innerText = data.title;
+            document.getElementById('guide-desc').innerText = data.desc;
+            document.getElementById('guide-content').innerHTML = data.content;
+            
+            const nextBtn = document.getElementById('guide-next-btn');
+            const prevBtn = document.getElementById('guide-prev-btn');
+            
+            prevBtn.classList.toggle('hidden', guideStep === 1);
+            
+            if (guideStep === 3) {
+                nextBtn.innerText = "Enter Lab →";
+                nextBtn.onclick = () => setLabView('dashboard');
+                nextBtn.className = "px-10 py-4 bg-green-500 text-white rounded-full font-bold shadow-xl hover:scale-105 transition hover:bg-green-600";
+            } else {
+                nextBtn.innerText = "Next Step →";
+                nextBtn.onclick = nextGuideStep;
+                nextBtn.className = "px-10 py-4 bg-[#003399] text-white rounded-full font-bold shadow-xl hover:scale-105 transition";
+            }
+        }
+
+        function nextGuideStep() {
+            if (guideStep < 3) {
+                guideStep++;
+                updateGuideUI();
+            }
+        }
+
+        function prevGuideStep() {
+            if (guideStep > 1) {
+                guideStep--;
+                updateGuideUI();
+            }
+        }
+
+        function setLabView(view) {
+            document.getElementById('lab-gateway').classList.add('hidden');
+            document.getElementById('lab-gateway').classList.remove('flex'); // Remove flex when hidden
+            document.getElementById('lab-dashboard').classList.add('hidden');
+            document.getElementById('lab-guide').classList.add('hidden');
+
+            if (view === 'gateway') {
+                document.getElementById('lab-gateway').classList.remove('hidden');
+                document.getElementById('lab-gateway').classList.add('flex'); // Restore flex
+            } else if (view === 'dashboard') {
+                document.getElementById('lab-dashboard').classList.remove('hidden');
+                loadLabData(); // Ensure data is loaded
+            } else if (view === 'guide') {
+                guideStep = 1; // Reset step
+                updateGuideUI(); // Initial render
+                document.getElementById('lab-guide').classList.remove('hidden');
+            }
+        }
+
+        window.onload = () => { showView('landing'); console.log('U2INVEST loaded successfully'); };
+    </script>
+</body>
+</html>

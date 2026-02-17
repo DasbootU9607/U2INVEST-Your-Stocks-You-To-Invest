@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  stock-agent:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app  # Maps your local folder to the container for real-time updates
+      - ./chroma_db:/app/chroma_db  # Persistent RAG database
+      - ./checkpoints.sqlite:/app/checkpoints.sqlite  # Persistent Chat Memory
+    restart: always

@@ -1,0 +1,31 @@
+# U2INVEST Requirements - 适配 Python 3.13 优化版
+Flask>=3.0.0
+flask-cors>=4.0.0
+
+# 数据处理
+pandas>=2.2.3
+numpy>=2.1.0
+
+# 股票数据
+akshare>=1.18.25
+
+# AI Agent相关 - 允许使用你刚才已经装好的最新版
+langchain>=1.1.0
+langchain-openai>=0.1.0
+langchain-core>=1.1.0
+langchain-community>=0.1.0
+langgraph>=0.1.0
+
+# 向量数据库
+chromadb>=0.5.0
+sentence-transformers>=2.3.1
+
+# 文档处理
+pypdf>=4.0.0
+langchain-huggingface>=0.1.0
+
+# 环境变量与工具
+python-dotenv>=1.0.0
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+langgraph-checkpoint-sqlite

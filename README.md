@@ -13,7 +13,7 @@
 ### U2CHAT (AI Agent)
 *   **Powered by DeepSeek-V3:** Utilizes state-of-the-art LLM reasoning for financial queries.
 *   **LangGraph & RAG Architecture:** Orchestrates complex workflows and retrieves knowledge from local investment guides (PDFs).
-*   **Real-time Data:** Integrated with **AkShare** to fetch live Chinese A-share market data.
+*   **Real-time Data:** Integrated with **AkShare** to fetch live market data.
 *   **Visual Analysis:** Generates interactive ECharts for price trends and K-line data.
 *   **Session Management:** Supports multiple chat sessions with persistent history (SQLite).
 

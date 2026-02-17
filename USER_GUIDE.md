@@ -1,4 +1,4 @@
-# U2INVEST User Guide 📘
+# U2INVEST User Guide 
 
 **Your path, Your Choice, Your Future, You to Invest.**
 

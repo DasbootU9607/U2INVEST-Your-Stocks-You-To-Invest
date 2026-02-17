@@ -10,6 +10,7 @@ __pycache__/
 
 # Databases & State
 *.sqlite
+*.sqlite*
 *.db
 checkpoints.sqlite
 chroma_db/

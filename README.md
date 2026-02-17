@@ -4,6 +4,8 @@
 
 **Enterprise-grade financial platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
 
+[![View User Guide](https://img.shields.io/badge/📖_View_User_Guide-Click_Here-blue?style=for-the-badge)](USER_GUIDE.md)
+
 <img src="static/images/LOGO_final.png" width="280" alt="U2INVEST Logo">
 
 ## Key Features
@@ -79,6 +81,21 @@ The system uses a **LangGraph** workflow to manage state and tool execution.
 
 5.  **Initialize Knowledge Base (Optional)**
     Place your financial PDF documents in the `knowledge/` folder. The system will automatically vectorize them on the first run.
+
+### 🐳 Docker Deployment (Recommended)
+
+To run the application in a containerized environment:
+
+1.  **Build the Image**
+    ```bash
+    docker build -t u2invest .
+    ```
+
+2.  **Run the Container**
+    ```bash
+    docker run -p 5000:5000 --env-file .env u2invest
+    ```
+    Access the app at `http://localhost:5000`.
 
 ### Running the Application
 

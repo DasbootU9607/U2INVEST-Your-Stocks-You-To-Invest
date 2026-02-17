@@ -2,7 +2,7 @@
 
 **Your path, Your Choice, Your Future, You to Invest.**
 
-**Enterprise-grade financial platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
+**Financial intelligence platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
 
 [![View User Guide](https://img.shields.io/badge/📖_View_User_Guide-Click_Here-blue?style=for-the-badge)](USER_GUIDE.md)
 

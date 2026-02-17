@@ -115,7 +115,7 @@ Visit `http://localhost:5000` in your browser.
 *   `templates/`: HTML frontend files.
 *   `static/`: CSS, Images, and JS assets.
 
-## 👨‍💻 Introduction & Acknowledgements
+## Introduction & Acknowledgements
 
 This platform was **independently developed over the course of one month** as a comprehensive full-stack engineering project. It represents a deep dive into modern AI agent architectures and financial data visualization.
 
@@ -124,13 +124,10 @@ This platform was **independently developed over the course of one month** as a 
 *   **AI-Augmented Workflow:** Leveraged **Gemini CLI** (integrated directly into VSCode) and **Claude** to accelerate coding, debug complex logic, and refine architectural decisions.
 *   **APIs & Data:** Integrated multiple financial data sources, including **AkShare** for real-time Chinese A-share market data.
 
-**Fun Fact:**
-This project was built in collaboration with AI, processing over **100,000 tokens** of context to generate the code, architecture, and documentation! 🤖✨
-
 **Special Thanks:**
 To the open-source communities behind LangChain, DeepSeek, and AkShare for providing the robust tools that made this agentic workflow possible.
 
-## 💼 Portfolio & License
+## Portfolio & License
 
 **Copyright © 2026 U2INVEST. All Rights Reserved.**
 

@@ -122,7 +122,7 @@ This platform was **independently developed over the course of one month** as a 
 **Development Highlights:**
 *   **Solo Full-Stack Engineering:** Handled the entire lifecycle from backend Flask logic and LangGraph orchestration to the frontend D3.js visualization and UI design.
 *   **AI-Augmented Workflow:** Leveraged **Gemini CLI** (integrated directly into VSCode) and **Claude** to accelerate coding, debug complex logic, and refine architectural decisions.
-*   **APIs & Data:** Integrated multiple financial data sources, including **AkShare** for real-time Chinese A-share market data.
+*   **APIs & Data:** Integrated multiple financial data sources, including **AkShare** for real-time market data.
 
 
 **Future Outlook:**

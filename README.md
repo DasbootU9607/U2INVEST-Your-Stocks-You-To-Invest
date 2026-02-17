@@ -124,12 +124,10 @@ This platform was **independently developed over the course of one month** as a 
 *   **AI-Augmented Workflow:** Leveraged **Gemini CLI** (integrated directly into VSCode) and **Claude** to accelerate coding, debug complex logic, and refine architectural decisions.
 *   **APIs & Data:** Integrated multiple financial data sources, including **AkShare** for real-time Chinese A-share market data.
 
-<<<<<<< HEAD
+
 **Future Outlook:**
 I am actively looking forward to further cooperation to refine this project, optimize the architecture, and evolve it into a robust, enterprise-ready solution suitable for production purposes.
 
-=======
->>>>>>> 45d8831bf6a544d291349447762dc77e69f5ef03
 **Special Thanks:**
 To the open-source communities behind LangChain, DeepSeek, and AkShare for providing the robust tools that made this agentic workflow possible.
 

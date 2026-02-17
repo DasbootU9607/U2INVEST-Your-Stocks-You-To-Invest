@@ -6,7 +6,7 @@ Welcome to the complete walkthrough of the U2INVEST platform. This guide demonst
 
 ---
 
-## 🏠 1. Landing Page & Navigation
+##  1. Landing Page & Navigation
 Your gateway to financial literacy. The clean interface allows you to jump straight into one of our three core pillars.
 
 ![Front Page](static/screenshots/Front%20Page.png)
@@ -17,7 +17,7 @@ Your gateway to financial literacy. The clean interface allows you to jump strai
 
 ---
 
-## 🎓 2. Knowledge Academy
+##  2. Knowledge Academy
 The Academy is designed to take you from novice to pro through structured coursework.
 
 ![Knowledge Academy](static/screenshots/Knowledge%20Academy.png)
@@ -52,7 +52,7 @@ Clicking any topic opens the learning module.
 
 ---
 
-## 🧪 3. Trading Lab
+##  3. Trading Lab
 Before risking real money, master the market here with **$100,000 virtual cash**.
 
 ![Lab Options](static/screenshots/Lab%20Options.png)
@@ -79,7 +79,7 @@ For advanced users, the Lab offers a professional trading interface.
 
 ---
 
-## 🤖 4. U2CHAT (AI Agent)
+##  4. U2CHAT (AI Agent)
 Your 24/7 Financial Analyst, powered by **DeepSeek-V3** and **LangGraph**.
 
 ![U2Chat](static/screenshots/U2Chat.png)
@@ -102,7 +102,7 @@ It can combine real-time data with its internal knowledge base (RAG) to offer in
 
 ---
 
-## ⚙️ Architecture
+##  Architecture
 For the tech-savvy, here is how U2INVEST works under the hood:
 
 ![Architecture](static/images/stock_agent_arch.png)

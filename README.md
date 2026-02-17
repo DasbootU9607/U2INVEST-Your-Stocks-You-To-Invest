@@ -2,7 +2,7 @@
 
 **Your path, Your Choice, Your Future, You to Invest.**
 
-**Enterprise-grade financial platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
+**Financial intelligence platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
 
 [![View User Guide](https://img.shields.io/badge/📖_View_User_Guide-Click_Here-blue?style=for-the-badge)](USER_GUIDE.md)
 
@@ -13,7 +13,7 @@
 ### U2CHAT (AI Agent)
 *   **Powered by DeepSeek-V3:** Utilizes state-of-the-art LLM reasoning for financial queries.
 *   **LangGraph & RAG Architecture:** Orchestrates complex workflows and retrieves knowledge from local investment guides (PDFs).
-*   **Real-time Data:** Integrated with **AkShare** to fetch live Chinese A-share market data.
+*   **Real-time Data:** Integrated with **AkShare** to fetch live market data.
 *   **Visual Analysis:** Generates interactive ECharts for price trends and K-line data.
 *   **Session Management:** Supports multiple chat sessions with persistent history (SQLite).
 
@@ -122,14 +122,12 @@ This platform was **independently developed over the course of one month** as a 
 **Development Highlights:**
 *   **Solo Full-Stack Engineering:** Handled the entire lifecycle from backend Flask logic and LangGraph orchestration to the frontend D3.js visualization and UI design.
 *   **AI-Augmented Workflow:** Leveraged **Gemini CLI** (integrated directly into VSCode) and **Claude** to accelerate coding, debug complex logic, and refine architectural decisions.
-*   **APIs & Data:** Integrated multiple financial data sources, including **AkShare** for real-time Chinese A-share market data.
+*   **APIs & Data:** Integrated multiple financial data sources, including **AkShare** for real-time market data.
 
-<<<<<<< HEAD
+
 **Future Outlook:**
 I am actively looking forward to further cooperation to refine this project, optimize the architecture, and evolve it into a robust, enterprise-ready solution suitable for production purposes.
 
-=======
->>>>>>> 45d8831bf6a544d291349447762dc77e69f5ef03
 **Special Thanks:**
 To the open-source communities behind LangChain, DeepSeek, and AkShare for providing the robust tools that made this agentic workflow possible.
 

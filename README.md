@@ -1,4 +1,4 @@
-# U2INVEST 🚀
+# U2INVEST 
 
 **Your path, Your Choice, Your Future, You to Invest.**
 
@@ -6,33 +6,33 @@
 
 ![U2INVEST Logo](static/images/LOGO_final.png)
 
-## ✨ Key Features
+## Key Features
 
-### 🤖 U2CHAT (AI Agent)
+### U2CHAT (AI Agent)
 *   **Powered by DeepSeek-V3:** Utilizes state-of-the-art LLM reasoning for financial queries.
 *   **LangGraph & RAG Architecture:** Orchestrates complex workflows and retrieves knowledge from local investment guides (PDFs).
 *   **Real-time Data:** Integrated with **AkShare** to fetch live Chinese A-share market data.
 *   **Visual Analysis:** Generates interactive ECharts for price trends and K-line data.
 *   **Session Management:** Supports multiple chat sessions with persistent history (SQLite).
 
-### 🧪 Trading Lab
+### Trading Lab
 *   **Real-time Simulation:** Trade popular stocks (Moutai, CATL, BYD) with virtual cash ($100k starting balance).
 *   **Professional Dashboard:** Includes K-line charts (60/120/250 days), portfolio tracking, and trade history.
 *   **Beginner Guide:** A step-by-step interactive tutorial on ownership and risk.
 
-### 🎓 Knowledge Academy
+### Knowledge Academy
 *   **50+ Modules:** Covers everything from "Time Value of Money" to "Options Trading".
 *   **Interactive Learning:** Video lessons, key takeaways, and outcomes.
 *   **Learning Roadmap:** Visual d3.js roadmap to track progress (Foundation → Advanced → Professional).
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 *   **Backend:** Python 3.13+, Flask
 *   **AI & Logic:** LangChain 1.1, LangGraph, ChromaDB (Vector Store)
 *   **Data:** AkShare (Financial Data), SQLite (Persistence)
 *   **Frontend:** HTML5, TailwindCSS, ECharts, D3.js
 
-## 🏗️ Architecture
+## Architecture
 
 The system uses a **LangGraph** workflow to manage state and tool execution.
 
@@ -42,7 +42,7 @@ The system uses a **LangGraph** workflow to manage state and tool execution.
 
 *(See `stock_agent_arch.md` for the detailed Mermaid diagram)*
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 *   Python 3.10+
@@ -89,7 +89,7 @@ python web_app.py
 
 Visit `http://localhost:5000` in your browser.
 
-## 📂 Project Structure
+## Project Structure
 
 *   `web_app.py`: Main Flask application entry point & API routes.
 *   `agent_graph.py`: LangGraph definition for the AI agent's logic.
@@ -98,7 +98,7 @@ Visit `http://localhost:5000` in your browser.
 *   `templates/`: HTML frontend files.
 *   `static/`: CSS, Images, and JS assets.
 
-## 💼 Portfolio & License
+## Portfolio & License
 
 **Copyright © 2026 U2INVEST. All Rights Reserved.**
 

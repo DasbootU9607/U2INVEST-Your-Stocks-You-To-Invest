@@ -82,7 +82,7 @@ The system uses a **LangGraph** workflow to manage state and tool execution.
 5.  **Initialize Knowledge Base (Optional)**
     Place your financial PDF documents in the `knowledge/` folder. The system will automatically vectorize them on the first run.
 
-### 🐳 Docker Deployment (Recommended)
+### Docker Deployment (Recommended)
 
 To run the application in a containerized environment:
 

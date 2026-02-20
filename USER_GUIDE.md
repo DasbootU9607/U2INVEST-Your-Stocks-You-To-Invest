@@ -25,7 +25,7 @@ The Academy is designed to take you from novice to pro through structured course
 ### 2.1 Core Features
 The main dashboard offers two views: **Course Modules** (Grid View) and **Learning Roadmap** (Tree View). You can track your progress and difficulty levels at a glance.
 
-![Feature of Academy](static/screenshots/Feature%20of%20Academy.png)
+![Show Module](static/screenshots/Show%20Module.png)
 
 ### 2.2 Learning Roadmap (Visual Progression)
 We use a D3.js interactive tree to visualize your learning path.

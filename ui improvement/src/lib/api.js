@@ -1,6 +1,19 @@
-const API_BASE = import.meta.env.VITE_API_BASE || "";
+import { requestDemoApi } from "@/lib/demo-api";
+
+const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+const IS_GITHUB_PAGES = typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
+const USE_DEMO_API = IS_GITHUB_PAGES && !API_BASE;
+
+export const BACKEND_REQUIRED_MESSAGE =
+  "This static preview is running in demo mode. Add a backend later to enable live data and the real agent.";
+
+export const FRONTEND_NEEDS_BACKEND = false;
 
 async function request(path, options = {}) {
+  if (USE_DEMO_API && path.startsWith("/api/")) {
+    return requestDemoApi(path, options);
+  }
+
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
     headers: {
@@ -16,8 +29,18 @@ async function request(path, options = {}) {
     : await response.text();
 
   if (!response.ok) {
+    const htmlFallback =
+      typeof payload === "string" &&
+      /<!doctype html|<html/i.test(payload);
+
+    if (htmlFallback && path.startsWith("/api/")) {
+      return requestDemoApi(path, options);
+    }
+
     const error = new Error(
-      typeof payload === "object"
+      htmlFallback
+        ? BACKEND_REQUIRED_MESSAGE
+        : typeof payload === "object"
         ? payload.message || payload.response || "Request failed."
         : payload || "Request failed."
     );

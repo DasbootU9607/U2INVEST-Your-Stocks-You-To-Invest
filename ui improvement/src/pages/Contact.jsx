@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Clock, CheckCircle } from "lucide-react";
+import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
@@ -137,7 +138,7 @@ export default function Contact() {
               <motion.div variants={fadeUp} className="flex items-start gap-3">
                 <input type="checkbox" id="consent" checked={form.consent} onChange={(event) => setForm({ ...form, consent: event.target.checked })} className="mt-1 accent-navy" />
                 <label htmlFor="consent" className="text-xs text-muted-foreground leading-relaxed">
-                  I confirm that I have read the <a href="/legal/privacy" className="underline text-navy">Privacy Policy</a> and consent to this project storing my enquiry so it can be reviewed.
+                  I confirm that I have read the <Link to="/legal/privacy" className="underline text-navy">Privacy Policy</Link> and consent to this project storing my enquiry so it can be reviewed.
                 </label>
               </motion.div>
               {errors.consent && <p className="text-xs text-red-500">{errors.consent}</p>}

@@ -1,0 +1,42 @@
+{
+  "name": "Trade",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "symbol": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "buy",
+        "sell"
+      ]
+    },
+    "shares": {
+      "type": "integer"
+    },
+    "price": {
+      "type": "number"
+    },
+    "total": {
+      "type": "number"
+    },
+    "note": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_email",
+    "symbol",
+    "action",
+    "shares",
+    "price",
+    "total"
+  ]
+}

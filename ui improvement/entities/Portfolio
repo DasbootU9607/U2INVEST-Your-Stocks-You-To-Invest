@@ -1,0 +1,40 @@
+{
+  "name": "Portfolio",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string"
+    },
+    "cash": {
+      "type": "number",
+      "default": 100000
+    },
+    "holdings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "shares": {
+            "type": "integer"
+          },
+          "avg_price": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "total_invested": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "user_email"
+  ]
+}

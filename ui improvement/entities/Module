@@ -1,0 +1,74 @@
+{
+  "name": "Module",
+  "type": "object",
+  "properties": {
+    "module_id": {
+      "type": "integer"
+    },
+    "parent": {
+      "type": "integer"
+    },
+    "category": {
+      "type": "string"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": [
+        "Beginner",
+        "Intermediate",
+        "Advanced"
+      ]
+    },
+    "name": {
+      "type": "string"
+    },
+    "video": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "views": {
+      "type": "integer",
+      "default": 0
+    },
+    "completed": {
+      "type": "boolean",
+      "default": false
+    },
+    "ratings": {
+      "type": "number",
+      "default": 0
+    },
+    "ratings_count": {
+      "type": "integer",
+      "default": 0
+    },
+    "intro": {
+      "type": "string"
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "takeaways": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name",
+    "category",
+    "difficulty"
+  ]
+}

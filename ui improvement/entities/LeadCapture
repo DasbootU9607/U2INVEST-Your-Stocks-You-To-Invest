@@ -1,0 +1,42 @@
+{
+  "name": "LeadCapture",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "company": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string"
+    },
+    "inquiry_type": {
+      "type": "string",
+      "enum": [
+        "general",
+        "demo",
+        "pricing",
+        "support",
+        "partnership"
+      ]
+    },
+    "message": {
+      "type": "string"
+    },
+    "consent": {
+      "type": "boolean"
+    },
+    "source": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "name",
+    "email",
+    "inquiry_type"
+  ]
+}

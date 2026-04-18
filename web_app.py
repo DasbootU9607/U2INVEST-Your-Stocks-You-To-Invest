@@ -1,14 +1,33 @@
 import os
+import sys
 import json
 import uuid
 import time
 import random
+import builtins
+from pathlib import Path
 from datetime import datetime, timedelta
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, abort, render_template, request, jsonify, send_from_directory, session
 from flask_cors import CORS
 from dotenv import load_dotenv
 import pandas as pd
 from collections import defaultdict
+
+
+def safe_print(*args, **kwargs):
+    try:
+        builtins.print(*args, **kwargs)
+    except UnicodeEncodeError:
+        file = kwargs.get("file", sys.stdout)
+        encoding = getattr(file, "encoding", None) or "utf-8"
+        cleaned_args = [
+            str(arg).encode(encoding, errors="ignore").decode(encoding, errors="ignore")
+            for arg in args
+        ]
+        builtins.print(*cleaned_args, **kwargs)
+
+
+print = safe_print
 
 # Load environment variables
 load_dotenv()
@@ -22,7 +41,30 @@ if not app.secret_key:
     print("   Using development key. See FLASK_SECRET_KEY_SETUP.md for instructions.")
     app.secret_key = 'dev-key-CHANGE-ME-in-production'
 
-CORS(app)
+app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+
+
+def get_cors_origins():
+    defaults = [
+        'http://127.0.0.1:5173',
+        'http://localhost:5173',
+        'http://127.0.0.1:5000',
+        'http://localhost:5000',
+    ]
+    extra = [
+        origin.strip()
+        for origin in os.getenv('FRONTEND_ORIGINS', '').split(',')
+        if origin.strip()
+    ]
+    return sorted(set(defaults + extra))
+
+
+CORS(app, supports_credentials=True, origins=get_cors_origins())
+
+ROOT_DIR = Path(__file__).resolve().parent
+UI_DIST_DIR = ROOT_DIR / "ui improvement" / "dist"
 
 # --- Academy Database (50 Modules for Beginners) ---
 ACADEMY_DATA = [
@@ -112,14 +154,91 @@ USER_PORTFOLIOS = defaultdict(lambda: {
 })
 
 CHAT_SESSIONS = defaultdict(lambda: {})
+INQUIRY_STORE = []
+USER_PROFILES = {}
 
-# ==================== Academy APIs (100% Preserved) ====================
-@app.route('/')
-def index():
+
+def ensure_user_session():
     if 'user_id' not in session:
         session['user_id'] = str(uuid.uuid4())
-    return render_template('index.html')
 
+
+def current_user_payload():
+    if not session.get('user_google_sub'):
+        return None
+
+    return {
+        "id": session.get('user_google_sub'),
+        "email": session.get('user_email'),
+        "name": session.get('user_name'),
+        "picture": session.get('user_picture'),
+    }
+
+
+@app.before_request
+def assign_user_session():
+    ensure_user_session()
+
+
+def pick_first_value(row, keys):
+    for key in keys:
+        value = row.get(key)
+        if value is None or pd.isna(value):
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return ""
+
+
+def build_fallback_news(symbol):
+    stock_name = STOCK_NAMES.get(symbol, f"Stock {symbol}")
+    now = datetime.now()
+    templates = [
+        (
+            f"{stock_name} remains available in the Trading Lab",
+            "U2INVEST Feed",
+            "The practice environment is still usable even when the live news source cannot be reached."
+        ),
+        (
+            f"Use U2CHAT for broader context on {stock_name}",
+            "U2INVEST Feed",
+            "The agent can combine market data, historical charts, fundamentals, and knowledge-base material."
+        ),
+        (
+            f"{stock_name} can still be analysed with simulated orders",
+            "U2INVEST Feed",
+            "Portfolio tracking, chart review, and order simulation continue to work without the news feed."
+        ),
+    ]
+
+    return [
+        {
+            "title": title,
+            "source": source,
+            "time": (now - timedelta(hours=index * 3)).strftime("%Y-%m-%d %H:%M"),
+            "summary": summary,
+        }
+        for index, (title, source, summary) in enumerate(templates)
+    ]
+
+
+def serve_spa_entry(path=""):
+    if UI_DIST_DIR.exists():
+        candidate = UI_DIST_DIR / path if path else UI_DIST_DIR / "index.html"
+        if path and candidate.is_file():
+            return send_from_directory(UI_DIST_DIR, path)
+
+        index_file = UI_DIST_DIR / "index.html"
+        if index_file.exists():
+            return send_from_directory(UI_DIST_DIR, "index.html")
+
+    if path in ("", "index.html"):
+        return render_template('index.html')
+
+    return abort(404)
+
+# ==================== Academy APIs (100% Preserved) ====================
 @app.route('/api/academy')
 def get_academy():
     return jsonify(list(ACADEMY_DB.values()))
@@ -337,6 +456,36 @@ def get_kline_data():
     
     print(f"🎲 Simulated K-line: {len(kline_data)} points")
     return jsonify({"status": "success", "symbol": symbol, "data": kline_data})
+
+@app.route('/api/lab/news')
+def get_stock_news_feed():
+    """Get recent headlines for a stock with a structured fallback."""
+    symbol = request.args.get('symbol', '600519').strip()
+    headlines = []
+
+    try:
+        import akshare as ak
+
+        news_df = ak.stock_news_em(symbol=symbol)
+        if not news_df.empty:
+            for row in news_df.head(8).to_dict(orient='records'):
+                title = pick_first_value(row, ['title', 'headline', '新闻标题', '标题', '资讯标题'])
+                if not title:
+                    continue
+
+                headlines.append({
+                    "title": title,
+                    "source": pick_first_value(row, ['source', '文章来源', '来源', '媒体名称']) or "East Money",
+                    "time": pick_first_value(row, ['time', '发布时间', '日期', 'pub_time', 'publish_time']),
+                    "summary": pick_first_value(row, ['summary', '新闻内容', '内容摘要', '摘要', 'content'])[:280],
+                })
+    except Exception as e:
+        print(f"WARNING: stock news fetch failed for {symbol}: {e}")
+
+    if not headlines:
+        headlines = build_fallback_news(symbol)
+
+    return jsonify({"status": "success", "symbol": symbol, "data": headlines})
 
 @app.route('/api/lab/portfolio')
 def get_portfolio():
@@ -577,6 +726,111 @@ def clear_chat_history():
         print(f"🗑️  All chats cleared for {user_id}")
         
     return jsonify({"status": "success"})
+
+
+@app.route('/api/auth/me')
+def auth_me():
+    user = current_user_payload()
+    return jsonify({
+        "status": "success",
+        "authenticated": bool(user),
+        "user": user,
+    })
+
+
+@app.route('/api/auth/google', methods=['POST'])
+def auth_google():
+    data = request.json or {}
+    credential = str(data.get('credential', '')).strip()
+    google_client_id = os.getenv('GOOGLE_CLIENT_ID', '').strip()
+
+    if not google_client_id:
+        return jsonify({"status": "error", "message": "GOOGLE_CLIENT_ID is not configured."}), 500
+
+    if not credential:
+        return jsonify({"status": "error", "message": "Missing Google credential."}), 400
+
+    try:
+        from google.oauth2 import id_token as google_id_token
+        from google.auth.transport import requests as google_requests
+
+        idinfo = google_id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            google_client_id
+        )
+
+        if idinfo.get('iss') not in {'accounts.google.com', 'https://accounts.google.com'}:
+            raise ValueError('Invalid issuer.')
+
+        google_sub = idinfo.get('sub')
+        session['user_id'] = google_sub
+        session['user_google_sub'] = google_sub
+        session['user_email'] = idinfo.get('email')
+        session['user_name'] = idinfo.get('name') or idinfo.get('given_name') or 'Google User'
+        session['user_picture'] = idinfo.get('picture')
+
+        USER_PROFILES[google_sub] = current_user_payload()
+
+        return jsonify({
+            "status": "success",
+            "authenticated": True,
+            "user": current_user_payload(),
+        })
+    except ImportError:
+        return jsonify({"status": "error", "message": "google-auth is not installed on the backend."}), 500
+    except ValueError as exc:
+        return jsonify({"status": "error", "message": f"Google sign-in failed: {exc}"}), 401
+
+
+@app.route('/api/auth/logout', methods=['POST'])
+def auth_logout():
+    for key in ['user_id', 'user_google_sub', 'user_email', 'user_name', 'user_picture']:
+        session.pop(key, None)
+
+    ensure_user_session()
+
+    return jsonify({"status": "success"})
+
+
+@app.route('/api/inquiry', methods=['POST'])
+def submit_inquiry():
+    """Record public-site enquiries from the redesigned UI."""
+    data = request.json or {}
+    name = str(data.get('name', '')).strip()
+    email = str(data.get('email', '')).strip()
+    consent = bool(data.get('consent'))
+
+    if not name or not email or not consent:
+        return jsonify({"status": "error", "message": "Name, email, and consent are required."}), 400
+
+    inquiry = {
+        "id": str(uuid.uuid4())[:8],
+        "timestamp": datetime.now().isoformat(),
+        "source": str(data.get('source', 'website')).strip() or "website",
+        "inquiry_type": str(data.get('inquiry_type', 'general')).strip() or "general",
+        "name": name,
+        "email": email,
+        "company": str(data.get('company', '')).strip(),
+        "role": str(data.get('role', '')).strip(),
+        "message": str(data.get('message', '')).strip(),
+        "user_id": session.get('user_id'),
+    }
+
+    INQUIRY_STORE.insert(0, inquiry)
+    del INQUIRY_STORE[200:]
+
+    print(f"Inquiry received: {inquiry['id']} ({inquiry['inquiry_type']}) from {email}")
+    return jsonify({"status": "success", "id": inquiry["id"]})
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path.startswith('api/'):
+        return abort(404)
+
+    return serve_spa_entry(path)
 
 if __name__ == '__main__':
     print("\n" + "="*60)

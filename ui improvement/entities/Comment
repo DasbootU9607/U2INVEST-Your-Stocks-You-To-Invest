@@ -1,0 +1,35 @@
+{
+  "name": "Comment",
+  "type": "object",
+  "properties": {
+    "module_id": {
+      "type": "integer"
+    },
+    "author_name": {
+      "type": "string"
+    },
+    "author_email": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string"
+    },
+    "likes": {
+      "type": "integer",
+      "default": 0
+    },
+    "liked_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "parent_comment_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "module_id",
+    "content"
+  ]
+}

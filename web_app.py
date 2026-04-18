@@ -155,24 +155,11 @@ USER_PORTFOLIOS = defaultdict(lambda: {
 
 CHAT_SESSIONS = defaultdict(lambda: {})
 INQUIRY_STORE = []
-USER_PROFILES = {}
 
 
 def ensure_user_session():
     if 'user_id' not in session:
         session['user_id'] = str(uuid.uuid4())
-
-
-def current_user_payload():
-    if not session.get('user_google_sub'):
-        return None
-
-    return {
-        "id": session.get('user_google_sub'),
-        "email": session.get('user_email'),
-        "name": session.get('user_name'),
-        "picture": session.get('user_picture'),
-    }
 
 
 @app.before_request
@@ -725,71 +712,6 @@ def clear_chat_history():
         CHAT_SESSIONS[user_id] = {}
         print(f"🗑️  All chats cleared for {user_id}")
         
-    return jsonify({"status": "success"})
-
-
-@app.route('/api/auth/me')
-def auth_me():
-    user = current_user_payload()
-    return jsonify({
-        "status": "success",
-        "authenticated": bool(user),
-        "user": user,
-    })
-
-
-@app.route('/api/auth/google', methods=['POST'])
-def auth_google():
-    data = request.json or {}
-    credential = str(data.get('credential', '')).strip()
-    google_client_id = os.getenv('GOOGLE_CLIENT_ID', '').strip()
-
-    if not google_client_id:
-        return jsonify({"status": "error", "message": "GOOGLE_CLIENT_ID is not configured."}), 500
-
-    if not credential:
-        return jsonify({"status": "error", "message": "Missing Google credential."}), 400
-
-    try:
-        from google.oauth2 import id_token as google_id_token
-        from google.auth.transport import requests as google_requests
-
-        idinfo = google_id_token.verify_oauth2_token(
-            credential,
-            google_requests.Request(),
-            google_client_id
-        )
-
-        if idinfo.get('iss') not in {'accounts.google.com', 'https://accounts.google.com'}:
-            raise ValueError('Invalid issuer.')
-
-        google_sub = idinfo.get('sub')
-        session['user_id'] = google_sub
-        session['user_google_sub'] = google_sub
-        session['user_email'] = idinfo.get('email')
-        session['user_name'] = idinfo.get('name') or idinfo.get('given_name') or 'Google User'
-        session['user_picture'] = idinfo.get('picture')
-
-        USER_PROFILES[google_sub] = current_user_payload()
-
-        return jsonify({
-            "status": "success",
-            "authenticated": True,
-            "user": current_user_payload(),
-        })
-    except ImportError:
-        return jsonify({"status": "error", "message": "google-auth is not installed on the backend."}), 500
-    except ValueError as exc:
-        return jsonify({"status": "error", "message": f"Google sign-in failed: {exc}"}), 401
-
-
-@app.route('/api/auth/logout', methods=['POST'])
-def auth_logout():
-    for key in ['user_id', 'user_google_sub', 'user_email', 'user_name', 'user_picture']:
-        session.pop(key, None)
-
-    ensure_user_session()
-
     return jsonify({"status": "success"})
 
 

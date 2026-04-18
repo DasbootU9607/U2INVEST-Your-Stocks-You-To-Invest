@@ -37,24 +37,6 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  getCurrentUser() {
-    return request("/api/auth/me");
-  },
-
-  loginWithGoogle(credential) {
-    return request("/api/auth/google", {
-      method: "POST",
-      body: JSON.stringify({ credential }),
-    });
-  },
-
-  logout() {
-    return request("/api/auth/logout", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-  },
-
   getAcademy() {
     return request("/api/academy");
   },

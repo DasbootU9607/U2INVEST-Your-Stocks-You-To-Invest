@@ -29,8 +29,8 @@ export default function ProductAcademy() {
       <section className="pt-32 pb-20 px-6 border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
-            <motion.div variants={fadeUp} className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center mb-6">
-              <BookOpen className="w-6 h-6 text-blue-600" />
+            <motion.div variants={fadeUp} className="w-12 h-12 rounded-2xl bg-navy/10 flex items-center justify-center mb-6">
+              <BookOpen className="w-6 h-6 text-navy" />
             </motion.div>
             <motion.p variants={fadeUp} className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Knowledge Academy</motion.p>
             <motion.h1 variants={fadeUp} className="font-serif text-5xl md:text-6xl text-foreground mb-6">
@@ -39,7 +39,7 @@ export default function ProductAcademy() {
               with structure.
             </motion.h1>
             <motion.p variants={fadeUp} className="text-lg text-muted-foreground max-w-xl leading-relaxed mb-8">
-              The Academy preserves the current project’s learning structure while fitting it into the redesigned UI: 50 modules, real completion state, ratings, comments, and video-based lessons.
+              The Academy preserves the current project's learning structure while fitting it into the redesigned UI: 50 modules, real completion state, ratings, comments, and video-based lessons.
             </motion.p>
             <motion.div variants={fadeUp} className="flex gap-3">
               <Link to="/app/academy" className="px-5 py-2.5 bg-navy text-white rounded-xl text-sm font-medium hover:bg-navy/90 transition-colors inline-flex items-center gap-2">
@@ -60,8 +60,8 @@ export default function ProductAcademy() {
             <div className="grid md:grid-cols-3 gap-5">
               {features.map((feature) => (
                 <motion.div key={feature.label} variants={fadeUp} className="bg-card border border-border rounded-2xl p-6">
-                  <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center mb-4">
-                    <feature.icon className="w-4 h-4 text-blue-600" />
+                  <div className="w-9 h-9 rounded-lg bg-navy/10 flex items-center justify-center mb-4">
+                    <feature.icon className="w-4 h-4 text-navy" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2 text-sm">{feature.label}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{feature.desc}</p>

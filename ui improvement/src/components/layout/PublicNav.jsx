@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, ChevronDown } from "lucide-react";
-import { useAuth } from "@/lib/AuthContext";
+import { logoSrc } from "@/lib/assets";
 
 const navLinks = [
   {
@@ -25,7 +25,6 @@ export default function PublicNav() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
   const location = useLocation();
-  const { isAuthenticated, user, logout } = useAuth();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -49,7 +48,7 @@ export default function PublicNav() {
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
-            <img src="/static/images/LOGO_final.png" alt="U2INVEST" className="h-8 w-auto object-contain" />
+            <img src={logoSrc} alt="U2INVEST" className="h-8 w-auto object-contain" />
             <span className="font-semibold text-foreground tracking-tight text-sm">U2INVEST</span>
           </Link>
 
@@ -104,40 +103,12 @@ export default function PublicNav() {
           </div>
 
           <div className="hidden md:flex items-center gap-3">
-            {isAuthenticated ? (
-              <>
-                <span className="text-sm text-muted-foreground px-3 py-2">
-                  {user?.name || user?.email || "Signed in"}
-                </span>
-                <button
-                  onClick={logout}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-                >
-                  Sign Out
-                </button>
-                <Link
-                  to="/app"
-                  className="text-sm px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-colors font-medium"
-                >
-                  Enter App
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/signin"
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors px-3 py-2"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  to="/app"
-                  className="text-sm px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-colors font-medium"
-                >
-                  Enter App
-                </Link>
-              </>
-            )}
+            <Link
+              to="/app"
+              className="text-sm px-4 py-2 bg-navy text-white rounded-lg hover:bg-navy/90 transition-colors font-medium"
+            >
+              Enter App
+            </Link>
           </div>
 
           <button
@@ -185,43 +156,12 @@ export default function PublicNav() {
                 )
               )}
               <div className="border-t border-border mt-3 pt-3 flex flex-col gap-2">
-                {isAuthenticated ? (
-                  <>
-                    <div className="text-center text-xs text-muted-foreground px-4 py-1">
-                      {user?.name || user?.email || "Signed in"}
-                    </div>
-                    <button
-                      onClick={async () => {
-                        await logout();
-                        setMobileOpen(false);
-                      }}
-                      className="text-center text-sm px-4 py-2.5 border border-border rounded-lg hover:bg-muted transition-colors"
-                    >
-                      Sign Out
-                    </button>
-                    <Link
-                      to="/app"
-                      className="text-center text-sm px-4 py-2.5 bg-navy text-white rounded-lg font-medium"
-                    >
-                      Enter App
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      to="/signin"
-                      className="text-center text-sm px-4 py-2.5 border border-border rounded-lg hover:bg-muted transition-colors"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      to="/app"
-                      className="text-center text-sm px-4 py-2.5 bg-navy text-white rounded-lg font-medium"
-                    >
-                      Enter App
-                    </Link>
-                  </>
-                )}
+                <Link
+                  to="/app"
+                  className="text-center text-sm px-4 py-2.5 bg-navy text-white rounded-lg font-medium"
+                >
+                  Enter App
+                </Link>
               </div>
             </div>
           </motion.div>

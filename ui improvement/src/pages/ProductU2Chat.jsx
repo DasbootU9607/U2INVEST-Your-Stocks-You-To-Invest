@@ -6,7 +6,7 @@ const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
 
 const capabilities = [
   { icon: TrendingUp, label: "Quote and K-line tools", desc: "Use the agent to pull stock quotes and historical price context from the backend." },
-  { icon: Database, label: "Fundamentals", desc: "Ask for the project’s fundamental-data tool when you need valuation and company metrics." },
+  { icon: Database, label: "Fundamentals", desc: "Ask for the project's fundamental-data tool when you need valuation and company metrics." },
   { icon: Zap, label: "Headline retrieval", desc: "Surface recent stock headlines directly through the stock-agent toolchain." },
   { icon: BookOpen, label: "Knowledge retrieval", desc: "Answers can pull from the U2INVEST local knowledge base built from curated finance documents." },
   { icon: MessageSquare, label: "Session memory", desc: "Chat sessions are persisted so conversations can continue over time." },
@@ -35,8 +35,8 @@ export default function ProductU2Chat() {
       <section className="pt-32 pb-20 px-6 border-b border-border">
         <div className="max-w-4xl mx-auto">
           <motion.div initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: 0.1 } } }}>
-            <motion.div variants={fadeUp} className="w-12 h-12 rounded-2xl bg-sky-50 flex items-center justify-center mb-6">
-              <MessageSquare className="w-6 h-6 text-sky-600" />
+            <motion.div variants={fadeUp} className="w-12 h-12 rounded-2xl bg-gold/30 flex items-center justify-center mb-6">
+              <MessageSquare className="w-6 h-6 text-navy" />
             </motion.div>
             <motion.p variants={fadeUp} className="text-xs uppercase tracking-widest text-muted-foreground mb-3">U2CHAT</motion.p>
             <motion.h1 variants={fadeUp} className="font-serif text-5xl md:text-6xl text-foreground mb-6">
@@ -45,7 +45,7 @@ export default function ProductU2Chat() {
               grounded in tools.
             </motion.h1>
             <motion.p variants={fadeUp} className="text-lg text-muted-foreground max-w-xl leading-relaxed mb-8">
-              U2CHAT connects the redesigned frontend to the project’s stock-agent backend. It combines market tools, session memory, and the local knowledge base in a single chat workflow.
+              U2CHAT connects the redesigned frontend to the project's stock-agent backend. It combines market tools, session memory, and the local knowledge base in a single chat workflow.
             </motion.p>
             <motion.div variants={fadeUp} className="flex gap-3">
               <Link to="/app/chat" className="px-5 py-2.5 bg-navy text-white rounded-xl text-sm font-medium hover:bg-navy/90 transition-colors inline-flex items-center gap-2">
@@ -66,8 +66,8 @@ export default function ProductU2Chat() {
             <div className="grid md:grid-cols-3 gap-5 mb-16">
               {capabilities.map((capability) => (
                 <motion.div key={capability.label} variants={fadeUp} className="bg-card border border-border rounded-2xl p-6">
-                  <div className="w-9 h-9 rounded-lg bg-sky-50 flex items-center justify-center mb-4">
-                    <capability.icon className="w-4 h-4 text-sky-600" />
+                  <div className="w-9 h-9 rounded-lg bg-gold/30 flex items-center justify-center mb-4">
+                    <capability.icon className="w-4 h-4 text-navy" />
                   </div>
                   <h3 className="font-semibold text-foreground mb-2 text-sm">{capability.label}</h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">{capability.desc}</p>

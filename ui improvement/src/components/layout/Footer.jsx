@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { logoSrc } from "@/lib/assets";
 
 const footerSections = [
   {
@@ -71,7 +72,7 @@ export default function Footer() {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-10">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-3 mb-4">
-              <img src="/static/images/LOGO_final.png" alt="U2INVEST" className="h-8 w-auto object-contain" />
+              <img src={logoSrc} alt="U2INVEST" className="h-8 w-auto object-contain" />
               <span className="font-semibold text-white text-sm">U2INVEST</span>
             </div>
             <p className="text-white/50 text-xs leading-relaxed mb-5">
@@ -110,7 +111,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-white/10 mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-white/30 text-xs">© {new Date().getFullYear()} U2INVEST. All rights reserved.</p>
+          <p className="text-white/35 text-xs">Copyright {new Date().getFullYear()} U2INVEST. All rights reserved.</p>
           <p className="text-white/20 text-xs text-center md:text-right max-w-xl">
             U2INVEST is an educational platform. Market data may be delayed or simulated, and nothing on this project constitutes financial advice.
           </p>

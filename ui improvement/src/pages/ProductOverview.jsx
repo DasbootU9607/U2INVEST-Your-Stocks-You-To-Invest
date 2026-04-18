@@ -8,9 +8,9 @@ const pillars = [
   {
     num: "01",
     icon: BookOpen,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
-    border: "border-blue-100",
+    color: "text-navy",
+    bg: "bg-navy/10",
+    border: "border-navy/10",
     label: "Knowledge Academy",
     headline: "Learn investing with structure and depth.",
     desc: "The Academy contains 50 modules across foundations, economics, analysis, strategy, psychology, and regulation. Each module includes a learning video, outcomes, takeaways, and progress tracking.",
@@ -32,9 +32,9 @@ const pillars = [
     border: "border-emerald-100",
     label: "Trading Lab",
     headline: "Practice stock decisions without financial risk.",
-    desc: "The Trading Lab is a simulated stock environment using the project’s stock pool, quote APIs, K-line charts, and a portfolio that starts with virtual cash.",
+    desc: "The Trading Lab is a simulated stock environment using the project's stock pool, quote APIs, K-line charts, and a portfolio that starts with virtual cash.",
     features: [
-      "¥100,000 in virtual starting capital",
+      "100,000 in virtual starting capital",
       "Quote lookups across the stock pool",
       "Historical K-line chart views",
       "Portfolio holdings and trade history",
@@ -46,9 +46,9 @@ const pillars = [
   {
     num: "03",
     icon: MessageSquare,
-    color: "text-sky-600",
-    bg: "bg-sky-50",
-    border: "border-sky-100",
+    color: "text-navy",
+    bg: "bg-gold/30",
+    border: "border-gold/30",
     label: "U2CHAT",
     headline: "Use a stock agent grounded in backend tools.",
     desc: "U2CHAT connects the frontend to the stock-agent backend, which can call quote, headline, K-line, fundamentals, and knowledge-base tools while persisting chat sessions.",
@@ -111,7 +111,7 @@ export default function ProductOverview() {
 
               <motion.div variants={fadeUp} className={`bg-card border ${pillar.border} rounded-2xl p-7`}>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground mb-4 font-medium">
-                  {pillar.label} 路 Key features
+                  {pillar.label} - Key features
                 </p>
                 <ul className="space-y-3">
                   {pillar.features.map((feature) => (

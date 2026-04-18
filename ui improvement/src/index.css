@@ -24,7 +24,7 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 204 88% 72%;
+    --accent: 208 36% 84%;
     --accent-foreground: 0 0% 9%;
 
     --destructive: 0 72% 51%;
@@ -36,10 +36,10 @@
 
     --radius: 0.5rem;
 
-    --navy: 212 73% 44%;
-    --navy-mid: 206 78% 58%;
-    --gold: 197 92% 68%;
-    --gold-light: 197 96% 80%;
+    --navy: 213 28% 38%;
+    --navy-mid: 210 26% 50%;
+    --gold: 206 45% 81%;
+    --gold-light: 206 46% 90%;
 
     --font-inter: 'Inter', sans-serif;
     --font-serif: 'DM Serif Display', serif;
@@ -53,7 +53,7 @@
     --sidebar-border: 0 0% 91%;
     --sidebar-ring: 0 0% 9%;
 
-    --chart-1: 212 68% 56%;
+    --chart-1: 210 33% 56%;
     --chart-2: 142 71% 45%;
     --chart-3: 0 84% 60%;
     --chart-4: 42 65% 52%;
@@ -82,7 +82,7 @@
     --muted: 0 0% 12%;
     --muted-foreground: 0 0% 45%;
 
-    --accent: 204 88% 72%;
+    --accent: 208 28% 70%;
     --accent-foreground: 0 0% 6%;
 
     --destructive: 0 62% 45%;

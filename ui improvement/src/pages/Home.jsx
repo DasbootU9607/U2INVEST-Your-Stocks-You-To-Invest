@@ -18,8 +18,8 @@ const fadeUp = {
 const pillars = [
   {
     icon: BookOpen,
-    color: "text-blue-600",
-    bg: "bg-blue-50",
+    color: "text-navy",
+    bg: "bg-navy/10",
     label: "Knowledge Academy",
     tagline: "Learn with structure",
     desc: "50 curated modules spanning the foundations of investing, analysis, psychology, and strategy. Each module includes a video, outcomes, and takeaways.",
@@ -32,14 +32,14 @@ const pillars = [
     bg: "bg-emerald-50",
     label: "Trading Lab",
     tagline: "Practice without risk",
-    desc: "A simulated trading environment with a live stock pool, quote lookups, K-line charts, and a portfolio that starts with ¥100,000 in virtual cash.",
+    desc: "A simulated trading environment with a live stock pool, quote lookups, K-line charts, and a portfolio that starts with 100,000 in virtual cash.",
     href: "/product/trading-lab",
     cta: "Try the Lab",
   },
   {
     icon: MessageSquare,
-    color: "text-sky-600",
-    bg: "bg-sky-50",
+    color: "text-navy",
+    bg: "bg-gold/30",
     label: "U2CHAT",
     tagline: "Analyse with AI",
     desc: "A stock agent backed by market tools and the U2INVEST knowledge base. Ask about quotes, headlines, K-line history, and investing concepts.",
@@ -99,7 +99,7 @@ export default function Home() {
             <motion.div variants={fadeUp} className="mb-6">
               <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-gold/10 text-gold border border-gold/20 rounded-full text-xs font-medium">
                 <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                Learn 路 Practice 路 Analyse
+                Learn | Practice | Analyse
               </span>
             </motion.div>
 
@@ -308,7 +308,7 @@ export default function Home() {
             </div>
             <motion.div variants={fadeUp} className="text-center mt-8">
               <Link to="/faq" className="text-sm text-navy font-medium hover:underline">
-                View all FAQs →
+                View all FAQs -&gt;
               </Link>
             </motion.div>
           </motion.div>

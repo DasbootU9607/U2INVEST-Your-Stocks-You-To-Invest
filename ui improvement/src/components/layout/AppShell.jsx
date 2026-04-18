@@ -1,29 +1,28 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { BookOpen, BarChart2, MessageSquare, Newspaper, Menu, X, ChevronLeft, LogOut } from "lucide-react";
+import { BookOpen, BarChart2, MessageSquare, Newspaper, Menu, X, ChevronLeft } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/lib/AuthContext";
+import { logoSrc } from "@/lib/assets";
 
 const navItems = [
-  { href: "/app/academy", icon: BookOpen,     label: "Academy"     },
-  { href: "/app/lab",     icon: BarChart2,    label: "Trading Lab" },
-  { href: "/app/news",    icon: Newspaper,    label: "News"        },
-  { href: "/app/chat",    icon: MessageSquare,label: "U2CHAT"      },
+  { href: "/app/academy", icon: BookOpen, label: "Academy" },
+  { href: "/app/lab", icon: BarChart2, label: "Trading Lab" },
+  { href: "/app/news", icon: Newspaper, label: "News" },
+  { href: "/app/chat", icon: MessageSquare, label: "U2CHAT" },
 ];
 
 export default function AppShell() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, logout } = useAuth();
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* Sidebar — desktop */}
+      {/* Sidebar - desktop */}
       <aside className="hidden md:flex flex-col w-52 bg-sidebar border-r border-sidebar-border flex-shrink-0">
         {/* Logo */}
         <div className="px-4 h-12 flex items-center border-b border-sidebar-border">
           <Link to="/" className="flex items-center gap-2 group">
-            <img src="/static/images/LOGO_final.png" alt="U2INVEST" className="h-6 w-auto object-contain" />
+            <img src={logoSrc} alt="U2INVEST" className="h-6 w-auto object-contain" />
             <span className="text-sidebar-foreground font-semibold text-sm tracking-tight">U2INVEST</span>
           </Link>
         </div>
@@ -51,19 +50,6 @@ export default function AppShell() {
 
         {/* Footer */}
         <div className="px-2 py-3 border-t border-sidebar-border">
-          {user?.email && (
-            <div className="px-3 py-2 mb-2">
-              <p className="text-[11px] uppercase tracking-wider text-sidebar-foreground/35 mb-1">Signed in</p>
-              <p className="text-xs text-sidebar-foreground/70 truncate">{user.email}</p>
-            </div>
-          )}
-          <button
-            onClick={logout}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Sign out
-          </button>
           <Link
             to="/"
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-sidebar-foreground/40 hover:text-sidebar-foreground/70 transition-colors"
@@ -77,7 +63,7 @@ export default function AppShell() {
       {/* Mobile header */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 h-12 bg-background border-b border-border px-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/static/images/LOGO_final.png" alt="U2INVEST" className="h-6 w-auto object-contain" />
+          <img src={logoSrc} alt="U2INVEST" className="h-6 w-auto object-contain" />
           <span className="font-semibold text-sm text-foreground">U2INVEST</span>
         </Link>
         <button onClick={() => setMobileOpen(!mobileOpen)} className="p-1.5 hover:bg-muted rounded-lg transition-colors">
@@ -89,7 +75,9 @@ export default function AppShell() {
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             className="md:hidden fixed top-12 left-0 right-0 z-40 bg-background border-b border-border p-3 space-y-0.5 shadow-lg"
           >
             {navItems.map((item) => (
@@ -103,16 +91,6 @@ export default function AppShell() {
                 {item.label}
               </Link>
             ))}
-            <button
-              onClick={async () => {
-                await logout();
-                setMobileOpen(false);
-              }}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-foreground hover:bg-muted transition-colors w-full"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign out
-            </button>
           </motion.div>
         )}
       </AnimatePresence>

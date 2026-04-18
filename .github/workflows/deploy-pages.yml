@@ -41,7 +41,6 @@ jobs:
         working-directory: ui improvement
         env:
           VITE_API_BASE: ${{ vars.VITE_API_BASE }}
-          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
           VITE_BASE_PATH: /U2INVEST-Your-Stocks-You-To-Invest/
 
       - name: Upload Pages artifact

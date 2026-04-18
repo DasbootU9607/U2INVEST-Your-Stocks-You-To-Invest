@@ -4,8 +4,8 @@
 
 **Financial intelligence platform featuring a RAG-enabled AI Agent (DeepSeek-V3 + LangGraph), interactive Trading Lab, and Knowledge Academy. Orchestrated with Flask, LangChain 1.1, and AkShare.**
 
-[![View User Guide](https://img.shields.io/badge/ View_User_Guide-Click_Here-blue?style=for-the-badge)](USER_GUIDE.md)
-[![U2INVEST Web Application](https://img.shields.io/badge/ View Web UI-Click Here-black?style=for-the-badge)](https://dasbootu9607.github.io/U2INVEST-Your-Stocks-You-To-Invest/)
+[![Open User Guide](https://img.shields.io/badge/User_Guide-Open-blue?style=for-the-badge)](./USER_GUIDE.md)
+[![Open Web UI](https://img.shields.io/badge/Web_UI-Open-black?style=for-the-badge)](https://dasbootu9607.github.io/U2INVEST-Your-Stocks-You-To-Invest/)
 
 <img src="static/images/LOGO_final.png" width="280" alt="U2INVEST Logo">
 

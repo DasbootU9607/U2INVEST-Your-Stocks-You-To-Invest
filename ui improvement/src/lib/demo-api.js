@@ -9,20 +9,29 @@ const DEMO_STORAGE_KEYS = {
 };
 
 const DEMO_STOCK_META = {
-  "600519": { name: "Kweichow Moutai", basePrice: 1688, sector: "Consumer Staples" },
-  "000858": { name: "Wuliangye", basePrice: 132, sector: "Consumer Staples" },
-  "601318": { name: "Ping An Insurance", basePrice: 49, sector: "Finance" },
-  "600036": { name: "China Merchants Bank", basePrice: 34, sector: "Finance" },
-  "000063": { name: "ZTE", basePrice: 28, sector: "Technology" },
-  "300750": { name: "CATL", basePrice: 204, sector: "New Energy" },
-  "002594": { name: "BYD", basePrice: 228, sector: "New Energy" },
+  AAPL: { name: "Apple", basePrice: 212, sector: "Mega Cap", assetType: "equity", aliases: ["apple"] },
+  MSFT: { name: "Microsoft", basePrice: 428, sector: "Mega Cap", assetType: "equity", aliases: ["microsoft"] },
+  NVDA: { name: "NVIDIA", basePrice: 134, sector: "Mega Cap", assetType: "equity", aliases: ["nvidia"] },
+  AMZN: { name: "Amazon", basePrice: 186, sector: "Mega Cap", assetType: "equity", aliases: ["amazon"] },
+  META: { name: "Meta", basePrice: 498, sector: "Mega Cap", assetType: "equity", aliases: ["meta platforms", "facebook"] },
+  TSLA: { name: "Tesla", basePrice: 196, sector: "Growth", assetType: "equity", aliases: ["tesla"] },
+  AMD: { name: "AMD", basePrice: 168, sector: "Growth", assetType: "equity", aliases: ["advanced micro devices"] },
+  PLTR: { name: "Palantir", basePrice: 28, sector: "Growth", assetType: "equity", aliases: ["palantir"] },
+  COIN: { name: "Coinbase", basePrice: 238, sector: "Growth", assetType: "equity", aliases: ["coinbase"] },
+  SPY: { name: "SPDR S&P 500 ETF", basePrice: 518, sector: "ETFs", assetType: "etf", aliases: ["s&p 500", "spdr s&p 500 etf"] },
+  QQQ: { name: "Invesco QQQ", basePrice: 443, sector: "ETFs", assetType: "etf", aliases: ["nasdaq 100", "invesco qqq"] },
+  IWM: { name: "iShares Russell 2000 ETF", basePrice: 204, sector: "ETFs", assetType: "etf", aliases: ["russell 2000", "ishares russell 2000 etf"] },
+  GLD: { name: "SPDR Gold Shares", basePrice: 216, sector: "ETFs", assetType: "etf", aliases: ["gold etf", "spdr gold shares"] },
+  "BTC-USD": { name: "Bitcoin", basePrice: 84200, sector: "Crypto", assetType: "crypto", aliases: ["bitcoin", "btc"] },
+  "ETH-USD": { name: "Ethereum", basePrice: 3980, sector: "Crypto", assetType: "crypto", aliases: ["ethereum", "eth"] },
+  "SOL-USD": { name: "Solana", basePrice: 176, sector: "Crypto", assetType: "crypto", aliases: ["solana", "sol"] },
 };
 
 const DEMO_STOCK_POOL = {
-  "Consumer Staples": ["600519", "000858"],
-  Finance: ["601318", "600036"],
-  Technology: ["000063"],
-  "New Energy": ["300750", "002594"],
+  "Mega Cap": ["AAPL", "MSFT", "NVDA", "AMZN", "META"],
+  Growth: ["TSLA", "AMD", "PLTR", "COIN"],
+  ETFs: ["SPY", "QQQ", "IWM", "GLD"],
+  Crypto: ["BTC-USD", "ETH-USD", "SOL-USD"],
 };
 
 const DEMO_MODULES = [
@@ -290,10 +299,11 @@ function symbolSeed(symbol) {
 }
 
 function generateKline(symbol, days = 60) {
-  const meta = DEMO_STOCK_META[symbol] || { name: symbol, basePrice: 50 };
+  const meta = DEMO_STOCK_META[symbol] || { name: symbol, basePrice: 100, sector: "General", assetType: "equity" };
   const seed = symbolSeed(symbol);
   const today = new Date();
-  let close = meta.basePrice + (seed % 9) * 1.7;
+  const isCrypto = meta.assetType === "crypto";
+  let close = meta.basePrice + (seed % 11) * 1.25;
   const points = [];
 
   for (let index = 0; index < days; index += 1) {
@@ -303,11 +313,14 @@ function generateKline(symbol, days = 60) {
 
     const trend = Math.sin((index + seed) / 6) * 1.6 + Math.cos((index + seed) / 13) * 0.9;
     const drift = ((seed % 7) - 3) * 0.08;
-    const open = close + Math.sin((index + seed) / 4) * 0.9;
-    const nextClose = Math.max(8, open + trend * 0.45 + drift);
-    const high = Math.max(open, nextClose) + 0.6 + ((seed + index) % 5) * 0.12;
-    const low = Math.min(open, nextClose) - 0.55 - ((seed + index) % 4) * 0.1;
-    const volume = 1200000 + ((seed * 113) + (index * 9173)) % 3400000;
+    const open = close + Math.sin((index + seed) / 4) * (isCrypto ? 1.2 : 0.8);
+    const nextClose = Math.max(meta.basePrice * 0.25, open + trend * (isCrypto ? 0.99 : 0.45) + drift * (isCrypto ? 1.5 : 1));
+    const wick = isCrypto ? 1.5 : 0.6;
+    const high = Math.max(open, nextClose) + wick + ((seed + index) % 5) * 0.12;
+    const low = Math.min(open, nextClose) - wick - ((seed + index) % 4) * 0.1;
+    const volumeBase = isCrypto ? 900000000 : 3000000;
+    const volumeSpan = isCrypto ? 800000000 : 5000000;
+    const volume = volumeBase + ((seed * 113) + (index * 9173)) % volumeSpan;
 
     points.push({
       date: date.toISOString().slice(0, 10),
@@ -347,11 +360,21 @@ function buildQuotes(symbols) {
 }
 
 function buildNews(symbol) {
-  const meta = DEMO_STOCK_META[symbol] || { name: symbol, sector: "Market" };
+  const meta = DEMO_STOCK_META[symbol] || { name: symbol, sector: "Market", assetType: "equity" };
+  const marketLens = meta.assetType === "crypto"
+    ? "crypto market leadership"
+    : meta.assetType === "etf"
+      ? "ETF flows and index leadership"
+      : `${meta.sector.toLowerCase()} leadership`;
+  const researchFocus = meta.assetType === "crypto"
+    ? "Focus on network activity, market structure, liquidity, and volatility management before sizing a position."
+    : meta.assetType === "etf"
+      ? "Focus on index exposure, fund flows, macro drivers, and how the asset fits into a broader portfolio."
+      : "Focus on earnings quality, cash generation, margin stability, and where the asset sits in its broader sector cycle.";
 
   return [
     {
-      title: `${meta.name} remains on the watchlist as investors track ${meta.sector.toLowerCase()} leadership`,
+      title: `${meta.name} remains on the watchlist as investors track ${marketLens}`,
       source: "U2INVEST Demo Feed",
       time: "Today 09:10",
       summary: "This static preview uses demo headlines so the app stays usable on GitHub Pages without a live backend.",
@@ -366,7 +389,7 @@ function buildNews(symbol) {
       title: `What to monitor before researching ${meta.name} in depth`,
       source: "Learning Desk",
       time: "Today 14:20",
-      summary: "Focus on earnings quality, cash generation, margin stability, and where the stock sits in its broader sector cycle.",
+      summary: researchFocus,
     },
   ];
 }
@@ -391,9 +414,21 @@ function buildChartBlock(symbol, days = 7) {
   };
 }
 
+function findMentionedSymbols(message) {
+  const lower = String(message || "").toLowerCase();
+
+  return Object.entries(DEMO_STOCK_META)
+    .filter(([symbol, meta]) => {
+      const aliases = meta.aliases || [];
+      const tokens = [symbol.toLowerCase(), meta.name.toLowerCase(), ...aliases.map((alias) => alias.toLowerCase())];
+      return tokens.some((token) => token && lower.includes(token));
+    })
+    .map(([symbol]) => symbol);
+}
+
 function buildAssistantResponse(message) {
   const lower = String(message || "").toLowerCase();
-  const symbols = Object.keys(DEMO_STOCK_META).filter((symbol) => lower.includes(symbol));
+  const symbols = findMentionedSymbols(message);
 
   if (lower.includes("compare") && symbols.length >= 2) {
     const comparison = compareSnapshot(symbols.slice(0, 2));
@@ -414,7 +449,7 @@ function buildAssistantResponse(message) {
   }
 
   if (lower.includes("k-line") || lower.includes("chart") || lower.includes("trend")) {
-    const symbol = symbols[0] || "600519";
+    const symbol = symbols[0] || "AAPL";
     const chart = buildChartBlock(symbol);
 
     return {
@@ -436,13 +471,13 @@ function buildAssistantResponse(message) {
 
     return {
       tools_used: [{ tool: "quote_lookup" }, { tool: "kline_history" }],
-      response: `### Market Overview\nThis static preview is showing a demo snapshot for ${quote.symbol} (${quote.name}).\n\n### Key Data\n- Last price: CNY ${quote.price.toFixed(2)}\n- Daily move: ${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${quote.change_pct.toFixed(2)}%)\n\n\`\`\`json-chart\n${JSON.stringify(chart, null, 2)}\n\`\`\`\n\n### Technical Analysis\n- Start with trend, then confirm the story with earnings quality and sector context.\n- If the move is sharp, check whether the risk profile still matches your time horizon.\n\n### Visual Trend\n- The chart above shows the recent closing path.\n- Deploy the backend later to replace this preview with live DeepSeek analysis.`,
+      response: `### Market Overview\nThis static preview is showing a demo snapshot for ${quote.symbol} (${quote.name}).\n\n### Key Data\n- Last price: USD ${quote.price.toFixed(2)}\n- Daily move: ${quote.change >= 0 ? "+" : ""}${quote.change.toFixed(2)} (${quote.change_pct.toFixed(2)}%)\n\n\`\`\`json-chart\n${JSON.stringify(chart, null, 2)}\n\`\`\`\n\n### Technical Analysis\n- Start with trend, then confirm the story with fundamentals, risk, and asset-specific context.\n- If the move is sharp, check whether the volatility profile still matches your time horizon.\n\n### Visual Trend\n- The chart above shows the recent closing path.\n- Deploy the backend later to replace this preview with live DeepSeek analysis.`,
     };
   }
 
   return {
     tools_used: [{ tool: "knowledge_base" }],
-    response: `### Market Overview\nThis GitHub Pages build is running in demo mode so the app remains usable without a cloud backend.\n\n### Key Data\n- Academy: available with local demo progress and comments.\n- Trading Lab: available with demo quotes, K-line data, and a local portfolio simulator.\n- U2CHAT: available with demo responses that preserve the original UI flow.\n\n### Technical Analysis\n- Ask about a stock code like 600519, 000858, or 300750.\n- Ask for a comparison, K-line trend, or risk explanation.\n\n### Visual Trend\n- Static site now works without raw GitHub Pages errors.\n- Add a real backend later when you are ready for live agent output.`,
+    response: `### Market Overview\nThis GitHub Pages build is running in demo mode so the app remains usable without a cloud backend.\n\n### Key Data\n- Academy: available with local demo progress and comments.\n- Trading Lab: available with demo quotes, K-line data, and a local portfolio simulator.\n- U2CHAT: available with demo responses that preserve the original UI flow.\n\n### Technical Analysis\n- Ask about a ticker or asset like AAPL, NVDA, SPY, or BTC-USD.\n- Ask for a comparison, K-line trend, or risk explanation.\n\n### Visual Trend\n- Static site now works without raw GitHub Pages errors.\n- Add a real backend later when you are ready for live agent output.`,
   };
 }
 
@@ -798,12 +833,12 @@ export async function requestDemoApi(path, options = {}) {
     return getQuotes(symbols);
   }
   if (pathname === "/api/lab/kline" && method === "GET") {
-    return getKline(params.get("symbol") || "600519", params.get("days") || 60);
+    return getKline(params.get("symbol") || "AAPL", params.get("days") || 60);
   }
   if (pathname === "/api/lab/portfolio" && method === "GET") return getPortfolio();
   if (pathname === "/api/lab/trade" && method === "POST") return trade(body);
   if (pathname === "/api/lab/reset" && method === "POST") return resetPortfolio();
-  if (pathname === "/api/lab/news" && method === "GET") return getStockNews(params.get("symbol") || "600519");
+  if (pathname === "/api/lab/news" && method === "GET") return getStockNews(params.get("symbol") || "AAPL");
   if (pathname === "/api/agent/sessions" && method === "GET") return getAgentSessions();
   if (pathname === "/api/agent/history" && method === "GET") return getAgentHistory(params.get("session_id"));
   if (pathname === "/api/agent/chat" && method === "POST") return sendAgentMessage(body.message || "", body.session_id);

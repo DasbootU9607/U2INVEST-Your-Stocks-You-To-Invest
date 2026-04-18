@@ -16,18 +16,18 @@ import {
 import { api, formatIsoTime } from "@/lib/api";
 
 const STOCK_CHIPS = [
-  { label: "600519", sector: "Popular" },
-  { label: "000858", sector: "Popular" },
-  { label: "601318", sector: "Finance" },
-  { label: "000063", sector: "Tech" },
-  { label: "300750", sector: "Energy" },
-  { label: "600036", sector: "Finance" },
-  { label: "002594", sector: "Energy" },
+  { label: "AAPL", sector: "Mega Cap" },
+  { label: "NVDA", sector: "Mega Cap" },
+  { label: "TSLA", sector: "Growth" },
+  { label: "SPY", sector: "ETF" },
+  { label: "QQQ", sector: "ETF" },
+  { label: "BTC-USD", sector: "Crypto" },
+  { label: "ETH-USD", sector: "Crypto" },
 ];
 
 const SUGGESTED_PROMPTS = [
   "What should I check before investing in a stock?",
-  "Compare 600519 and 000858 from a fundamentals perspective.",
+  "Compare AAPL and NVDA from a fundamentals perspective.",
   "Explain how to read a daily K-line chart.",
   "What are the main risk signals in a balance sheet?",
 ];
@@ -471,7 +471,7 @@ export default function Chat() {
                 {currentSession ? currentSession.title : "U2CHAT"}
               </h2>
               <p className="text-sm text-muted-foreground mb-8 max-w-xs">
-                Ask about stocks, fundamentals, price history, or investing concepts.
+                Ask about US stocks, ETFs, crypto, fundamentals, or price history.
               </p>
               <div className="grid grid-cols-1 gap-2 w-full max-w-md">
                 {SUGGESTED_PROMPTS.map((prompt) => (

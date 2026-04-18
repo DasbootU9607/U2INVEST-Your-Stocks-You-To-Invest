@@ -1,13 +1,13 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Newspaper, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
 
 const WATCHLIST = [
-  { symbol: "600519", name: "Moutai" },
-  { symbol: "000858", name: "Wuliangye" },
-  { symbol: "601318", name: "Ping An" },
-  { symbol: "300750", name: "CATL" },
+  { symbol: "AAPL", name: "Apple" },
+  { symbol: "NVDA", name: "NVIDIA" },
+  { symbol: "SPY", name: "S&P 500 ETF" },
+  { symbol: "BTC-USD", name: "Bitcoin" },
 ];
 
 export default function News() {
@@ -50,7 +50,7 @@ export default function News() {
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
         <p className="text-xs text-muted-foreground uppercase tracking-widest mb-2">Market News</p>
         <h1 className="font-serif text-4xl text-foreground mb-3">Headline watchlist.</h1>
-        <p className="text-muted-foreground text-sm">Browse recent headlines by tracked stock and ask U2CHAT for deeper context.</p>
+        <p className="text-muted-foreground text-sm">Browse recent headlines by tracked asset and ask U2CHAT for deeper context.</p>
       </motion.div>
 
       <div className="flex flex-wrap gap-2 mb-8">
@@ -88,7 +88,7 @@ export default function News() {
               <div className="flex items-center gap-2 mb-3 text-xs text-muted-foreground">
                 <Newspaper className="w-3.5 h-3.5" />
                 <span>{headline.source || "Market Feed"}</span>
-                {headline.time && <span>• {headline.time}</span>}
+                {headline.time && <span>| {headline.time}</span>}
               </div>
               <h2 className="text-base font-semibold text-foreground mb-2">
                 {headline.title || headline.headline || "Untitled headline"}
@@ -103,3 +103,4 @@ export default function News() {
     </div>
   );
 }
+

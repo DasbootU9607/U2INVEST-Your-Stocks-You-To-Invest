@@ -1,4 +1,4 @@
-import os
+﻿import os
 import sys
 import json
 import uuid
@@ -6,12 +6,12 @@ import time
 import random
 import builtins
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 from flask import Flask, abort, render_template, request, jsonify, send_from_directory, session
 from flask_cors import CORS
 from dotenv import load_dotenv
-import pandas as pd
 from collections import defaultdict
+from market_demo import MARKET_POOL, generate_kline, generate_news, generate_quotes
 
 
 def safe_print(*args, **kwargs):
@@ -37,7 +37,7 @@ app = Flask(__name__)
 # Use environment variable for secret key (SECURITY BEST PRACTICE)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 if not app.secret_key:
-    print("⚠️  WARNING: FLASK_SECRET_KEY not set in .env file!")
+    print("鈿狅笍  WARNING: FLASK_SECRET_KEY not set in .env file!")
     print("   Using development key. See FLASK_SECRET_KEY_SETUP.md for instructions.")
     app.secret_key = 'dev-key-CHANGE-ME-in-production'
 
@@ -129,23 +129,8 @@ COMMENTS_STORE = {i: [
 ] for i in range(1, 51)}
 
 
-# --- Lab: Stock Pool (English keys for API) ---
-STOCK_POOL = {
-    "Popular": ["600519", "000858", "601318", "600036", "000001"],
-    "Tech": ["000063", "002230", "002415", "300059", "300750"],
-    "Energy": ["300750", "002594", "601012", "600733"],
-    "Finance": ["601318", "601398", "600036", "601166", "600030"],
-}
-
-# Stock names in English
-STOCK_NAMES = {
-    "600519": "Moutai", "000858": "Wuliangye", "601318": "Ping An",
-    "600036": "CMB", "000001": "Ping An Bank",
-    "000063": "ZTE", "002230": "iFLYTEK", "002415": "Hikvision",
-    "300059": "East Money", "300750": "CATL",
-    "002594": "BYD", "601012": "LONGi", "600733": "BAIC BluePark",
-    "601398": "ICBC", "601166": "Industrial Bank", "600030": "CITIC"
-}
+# --- Lab: Stock Pool (US equities, ETFs, and crypto) ---
+STOCK_POOL = MARKET_POOL
 
 USER_PORTFOLIOS = defaultdict(lambda: {
     "cash": 100000.0,
@@ -167,47 +152,9 @@ def assign_user_session():
     ensure_user_session()
 
 
-def pick_first_value(row, keys):
-    for key in keys:
-        value = row.get(key)
-        if value is None or pd.isna(value):
-            continue
-        text = str(value).strip()
-        if text:
-            return text
-    return ""
-
 
 def build_fallback_news(symbol):
-    stock_name = STOCK_NAMES.get(symbol, f"Stock {symbol}")
-    now = datetime.now()
-    templates = [
-        (
-            f"{stock_name} remains available in the Trading Lab",
-            "U2INVEST Feed",
-            "The practice environment is still usable even when the live news source cannot be reached."
-        ),
-        (
-            f"Use U2CHAT for broader context on {stock_name}",
-            "U2INVEST Feed",
-            "The agent can combine market data, historical charts, fundamentals, and knowledge-base material."
-        ),
-        (
-            f"{stock_name} can still be analysed with simulated orders",
-            "U2INVEST Feed",
-            "Portfolio tracking, chart review, and order simulation continue to work without the news feed."
-        ),
-    ]
-
-    return [
-        {
-            "title": title,
-            "source": source,
-            "time": (now - timedelta(hours=index * 3)).strftime("%Y-%m-%d %H:%M"),
-            "summary": summary,
-        }
-        for index, (title, source, summary) in enumerate(templates)
-    ]
+    return generate_news(symbol)
 
 
 def serve_spa_entry(path=""):
@@ -315,164 +262,50 @@ def rate_course():
 
 @app.route('/api/market/data')
 def get_market_data():
-    symbol = request.args.get('symbol', 'AAPL')
+    symbol = request.args.get('symbol', 'AAPL').strip() or 'AAPL'
     data = []
-    base_price = {"AAPL": 230, "TSLA": 180, "NVDA": 130, "BTC": 95000}.get(symbol, 100)
-    for i in range(120):
-        o = base_price + random.uniform(-1, 1)
-        c = o + random.uniform(-2, 2)
-        h = max(o, c) + random.uniform(0, 1)
-        l = min(o, c) - random.uniform(0, 1)
-        data.append({"time": i, "open": o, "close": c, "high": h, "low": l, "vol": random.randint(1000, 5000)})
-        base_price = c
+    for index, point in enumerate(generate_kline(symbol, 120)):
+        data.append({
+            "time": index,
+            "open": point["open"],
+            "close": point["close"],
+            "high": point["high"],
+            "low": point["low"],
+            "vol": point["volume"],
+        })
     return jsonify(data)
 
-# ==================== Lab APIs ====================
 
 @app.route('/api/lab/stocks')
 def get_stock_pool():
-    """Return stock pool with English keys"""
-    print(f"📊 Stock pool requested: {STOCK_POOL.keys()}")
+    """Return the Trading Lab asset universe."""
+    print(f"Stock pool requested: {list(STOCK_POOL.keys())}")
     return jsonify(STOCK_POOL)
+
 
 @app.route('/api/lab/quote')
 def get_real_quote():
-    """Get quotes - Always returns data"""
-    symbols = request.args.get('symbols', '600519').split(',')
-    print(f"💰 Quote requested for: {symbols}")
-    
-    result = []
-    
-    # Try real data with AkShare
-    try:
-        import akshare as ak
-        df = ak.stock_zh_a_spot_em()
-        for symbol in symbols:
-            symbol = symbol.strip()
-            stock_data = df[df['代码'] == symbol]
-            if not stock_data.empty:
-                row = stock_data.iloc[0]
-                result.append({
-                    "symbol": symbol,
-                    "name": STOCK_NAMES.get(symbol, row['名称']),
-                    "price": float(row['最新价']),
-                    "change": float(row['涨跌额']),
-                    "change_pct": float(row['涨跌幅']),
-                    "high": float(row['最高']),
-                    "low": float(row['最低']),
-                    "open": float(row['今开']),
-                    "volume": int(row['成交量']),
-                    "turnover": float(row['成交额'])
-                })
-                print(f"✅ Real data for {symbol}: {result[-1]['name']}")
-    except Exception as e:
-        print(f"⚠️  AkShare failed: {e}, using simulated data")
-    
-    # Fallback to simulated data
-    if len(result) == 0:
-        for symbol in symbols:
-            symbol = symbol.strip()
-            base_price = random.uniform(50, 200)
-            change = random.uniform(-10, 10)
-            result.append({
-                "symbol": symbol,
-                "name": STOCK_NAMES.get(symbol, f"Stock {symbol[-4:]}"),
-                "price": round(base_price, 2),
-                "change": round(change, 2),
-                "change_pct": round((change / base_price) * 100, 2),
-                "high": round(base_price + abs(change) * 0.5, 2),
-                "low": round(base_price - abs(change) * 0.5, 2),
-                "open": round(base_price - change * 0.3, 2),
-                "volume": random.randint(1000000, 50000000),
-                "turnover": random.randint(10000000, 500000000)
-            })
-            print(f"🎲 Simulated data for {symbol}: {result[-1]['name']}")
-    
-    print(f"✅ Returning {len(result)} quotes")
-    return jsonify({"status": "success", "data": result})
+    """Return demo quotes for supported US stocks, ETFs, and crypto assets."""
+    symbols = [symbol.strip() for symbol in request.args.get('symbols', 'AAPL').split(',') if symbol.strip()]
+    print(f"Quote requested for: {symbols}")
+    return jsonify({"status": "success", "data": generate_quotes(symbols)})
+
 
 @app.route('/api/lab/kline')
 def get_kline_data():
-    """Get K-line data"""
-    symbol = request.args.get('symbol', '600519')
+    """Return demo K-line data for supported US stocks, ETFs, and crypto assets."""
+    symbol = request.args.get('symbol', 'AAPL')
     days = int(request.args.get('days', 60))
-    print(f"📈 K-line requested: {symbol}, {days} days")
-    
-    try:
-        import akshare as ak
-        df = ak.stock_zh_a_hist(symbol=symbol, period="daily", adjust="qfq")
-        if not df.empty:
-            df = df.tail(days)
-            kline_data = []
-            for _, row in df.iterrows():
-                kline_data.append({
-                    "date": str(row['日期']),
-                    "open": float(row['开盘']),
-                    "close": float(row['收盘']),
-                    "high": float(row['最高']),
-                    "low": float(row['最低']),
-                    "volume": int(row['成交量'])
-                })
-            print(f"✅ Real K-line data: {len(kline_data)} points")
-            return jsonify({"status": "success", "symbol": symbol, "data": kline_data})
-    except Exception as e:
-        print(f"⚠️  K-line fetch failed: {e}, using simulated")
-    
-    # Simulated K-line
-    base_price = random.uniform(50, 150)
-    kline_data = []
-    start_date = datetime.now() - timedelta(days=days)
-    
-    for i in range(days):
-        date = (start_date + timedelta(days=i)).strftime('%Y-%m-%d')
-        change = random.uniform(-3, 3)
-        open_price = base_price
-        close_price = base_price + change
-        high_price = max(open_price, close_price) + random.uniform(0, 2)
-        low_price = min(open_price, close_price) - random.uniform(0, 2)
-        
-        kline_data.append({
-            "date": date,
-            "open": round(open_price, 2),
-            "close": round(close_price, 2),
-            "high": round(high_price, 2),
-            "low": round(low_price, 2),
-            "volume": random.randint(1000000, 5000000)
-        })
-        base_price = close_price
-    
-    print(f"🎲 Simulated K-line: {len(kline_data)} points")
-    return jsonify({"status": "success", "symbol": symbol, "data": kline_data})
+    print(f"K-line requested: {symbol}, {days} days")
+    return jsonify({"status": "success", "symbol": symbol, "data": generate_kline(symbol, days)})
+
 
 @app.route('/api/lab/news')
 def get_stock_news_feed():
-    """Get recent headlines for a stock with a structured fallback."""
-    symbol = request.args.get('symbol', '600519').strip()
-    headlines = []
+    """Return demo news for supported US stocks, ETFs, and crypto assets."""
+    symbol = request.args.get('symbol', 'AAPL').strip()
+    return jsonify({"status": "success", "symbol": symbol, "data": build_fallback_news(symbol)})
 
-    try:
-        import akshare as ak
-
-        news_df = ak.stock_news_em(symbol=symbol)
-        if not news_df.empty:
-            for row in news_df.head(8).to_dict(orient='records'):
-                title = pick_first_value(row, ['title', 'headline', '新闻标题', '标题', '资讯标题'])
-                if not title:
-                    continue
-
-                headlines.append({
-                    "title": title,
-                    "source": pick_first_value(row, ['source', '文章来源', '来源', '媒体名称']) or "East Money",
-                    "time": pick_first_value(row, ['time', '发布时间', '日期', 'pub_time', 'publish_time']),
-                    "summary": pick_first_value(row, ['summary', '新闻内容', '内容摘要', '摘要', 'content'])[:280],
-                })
-    except Exception as e:
-        print(f"WARNING: stock news fetch failed for {symbol}: {e}")
-
-    if not headlines:
-        headlines = build_fallback_news(symbol)
-
-    return jsonify({"status": "success", "symbol": symbol, "data": headlines})
 
 @app.route('/api/lab/portfolio')
 def get_portfolio():
@@ -531,7 +364,7 @@ def execute_trade():
             "total": total_value
         })
         
-        print(f"✅ BUY: {shares} x {symbol} @ ${price}")
+        print(f"鉁?BUY: {shares} x {symbol} @ ${price}")
         return jsonify({"status": "success", "message": f"Bought {shares} shares"})
     
     elif action == 'sell':
@@ -558,7 +391,7 @@ def execute_trade():
             "total": total_value
         })
         
-        print(f"✅ SELL: {shares} x {symbol} @ ${price}")
+        print(f"鉁?SELL: {shares} x {symbol} @ ${price}")
         return jsonify({"status": "success", "message": f"Sold {shares} shares"})
     
     return jsonify({"status": "error", "message": "Invalid action"}), 400
@@ -572,7 +405,7 @@ def reset_portfolio():
         "holdings": {},
         "history": [],
     }
-    print(f"🔄 Portfolio reset for {user_id}")
+    print(f"馃攧 Portfolio reset for {user_id}")
     return jsonify({"status": "success"})
 
 # ==================== Agent APIs ====================
@@ -599,6 +432,20 @@ def agent_chat():
         }
     
     current_session = CHAT_SESSIONS[user_id][session_id]
+    if not os.getenv('DEEPSEEK_API_KEY'):
+        current_session["messages"].append({
+            "role": "user",
+            "content": user_message,
+            "timestamp": datetime.now().isoformat()
+        })
+        error_msg = "DeepSeek is not configured. Set DEEPSEEK_API_KEY in .env or in your cloud service environment."
+        current_session["messages"].append({
+            "role": "assistant",
+            "content": error_msg,
+            "timestamp": datetime.now().isoformat(),
+            "tools_used": []
+        })
+        return jsonify({"status": "error", "response": error_msg}), 503
     
     current_session["messages"].append({
         "role": "user",
@@ -606,7 +453,7 @@ def agent_chat():
         "timestamp": datetime.now().isoformat()
     })
     
-    print(f"💬 User message ({session_id}): {user_message}")
+    print(f"馃挰 User message ({session_id}): {user_message}")
     
     # Try real agent
     try:
@@ -641,7 +488,7 @@ def agent_chat():
             "tools_used": tool_results
         })
         
-        print(f"✅ Agent response: {response_content[:100]}...")
+        print(f"鉁?Agent response: {response_content[:100]}...")
         return jsonify({
             "status": "success",
             "session_id": session_id,
@@ -650,7 +497,7 @@ def agent_chat():
         })
         
     except ImportError as e:
-        error_msg = f"⚠️  Agent not configured. Check agent_graph.py and .env file. Error: {str(e)}"
+        error_msg = f"鈿狅笍  Agent not configured. Check agent_graph.py and .env file. Error: {str(e)}"
         print(error_msg)
         
         current_session["messages"].append({
@@ -659,11 +506,11 @@ def agent_chat():
             "timestamp": datetime.now().isoformat()
         })
         
-        return jsonify({"status": "error", "response": error_msg})
+        return jsonify({"status": "error", "response": error_msg}), 500
         
     except Exception as e:
         error_msg = f"Agent error: {str(e)}"
-        print(f"❌ {error_msg}")
+        print(f"鉂?{error_msg}")
         
         current_session["messages"].append({
             "role": "assistant",
@@ -671,7 +518,7 @@ def agent_chat():
             "timestamp": datetime.now().isoformat()
         })
         
-        return jsonify({"status": "error", "response": error_msg})
+        return jsonify({"status": "error", "response": error_msg}), 500
 
 @app.route('/api/agent/sessions')
 def get_chat_sessions():
@@ -707,10 +554,10 @@ def clear_chat_history():
     if session_id:
         if session_id in CHAT_SESSIONS[user_id]:
             del CHAT_SESSIONS[user_id][session_id]
-            print(f"🗑️  Session {session_id} cleared for {user_id}")
+            print(f"馃棏锔? Session {session_id} cleared for {user_id}")
     else:
         CHAT_SESSIONS[user_id] = {}
-        print(f"🗑️  All chats cleared for {user_id}")
+        print(f"馃棏锔? All chats cleared for {user_id}")
         
     return jsonify({"status": "success"})
 
@@ -756,13 +603,20 @@ def serve_frontend(path):
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("🚀 U2INVEST Server Starting...")
+    print("馃殌 U2INVEST Server Starting...")
     print("="*60)
     if not os.getenv('FLASK_SECRET_KEY'):
-        print("⚠️  WARNING: Using development secret key!")
+        print("鈿狅笍  WARNING: Using development secret key!")
         print("   See FLASK_SECRET_KEY_SETUP.md for production setup.")
-    print(f"✅ Stock Pool: {list(STOCK_POOL.keys())}")
-    print(f"✅ Academy Modules: {len(ACADEMY_DB)}")
+    print(f"鉁?Stock Pool: {list(STOCK_POOL.keys())}")
+    print(f"鉁?Academy Modules: {len(ACADEMY_DB)}")
     print("="*60 + "\n")
     
-    app.run(debug=True, port=5000)
+    debug_default = 'false' if os.getenv('PORT') else 'true'
+    app.run(
+        debug=os.getenv('FLASK_DEBUG', debug_default).lower() == 'true',
+        host=os.getenv('FLASK_HOST', '0.0.0.0'),
+        port=int(os.getenv('PORT', os.getenv('FLASK_PORT', '5000')))
+    )
+
+

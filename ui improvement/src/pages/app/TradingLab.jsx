@@ -40,7 +40,7 @@ const CHART_MODES = [
 ];
 
 function formatMoney(value, maximumFractionDigits = 2) {
-  return `CNY ${Number(value || 0).toLocaleString("en-US", {
+  return `USD ${Number(value || 0).toLocaleString("en-US", {
     minimumFractionDigits: maximumFractionDigits,
     maximumFractionDigits,
   })}`;
@@ -296,7 +296,7 @@ function NewsDrawer({ symbol, name, onClose }) {
 
         {!loading && !error && headlines.length === 0 && (
           <div className="px-5 py-6 text-sm text-muted-foreground">
-            No recent headlines were returned for this stock. Try again later or ask U2CHAT for a broader analysis.
+            No recent headlines were returned for this asset. Try again later or ask U2CHAT for broader context.
           </div>
         )}
 
@@ -737,7 +737,7 @@ export default function TradingLab() {
 
             {klineData.length === 0 ? (
               <div className="h-full flex items-center justify-center text-sm text-muted-foreground">
-                No chart data available for the selected stock.
+                No chart data available for the selected asset.
               </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">

@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
+const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+const BASE_URL = import.meta.env.BASE_URL || "/";
+const IS_GITHUB_PAGES =
+  typeof window !== "undefined" && window.location.hostname.endsWith("github.io");
+const USE_STATIC_MEDIA = IS_GITHUB_PAGES && !API_BASE;
+
 function shuffleList(items) {
   const shuffled = [...items];
 
@@ -22,6 +28,23 @@ function buildVideoRound(items, previousLastVideo = null) {
   return shuffled;
 }
 
+function trimLeadingSlashes(value) {
+  return String(value || "").replace(/^\/+/, "");
+}
+
+function joinAppPath(path) {
+  const normalizedBase = BASE_URL.endsWith("/") ? BASE_URL : `${BASE_URL}/`;
+  return `${normalizedBase}${trimLeadingSlashes(path)}`;
+}
+
+function joinBackendPath(path) {
+  if (!path) {
+    return "";
+  }
+
+  return API_BASE ? `${API_BASE}${path}` : path;
+}
+
 export function useRandomVideoBackground({
   listEndpoint,
   mediaBasePath,
@@ -36,6 +59,7 @@ export function useRandomVideoBackground({
   const [videos, setVideos] = useState([]);
   const [currentVideo, setCurrentVideo] = useState("");
   const [isActive, setIsActive] = useState(true);
+  const [mediaSource, setMediaSource] = useState("backend");
 
   useEffect(() => {
     videosRef.current = videos;
@@ -45,14 +69,36 @@ export function useRandomVideoBackground({
     let ignore = false;
 
     async function loadVideos() {
+      const staticListUrl = joinAppPath(`${trimLeadingSlashes(mediaBasePath)}/index.json`);
+
       try {
-        const response = await fetch(listEndpoint);
+        const tryStatic = async () => {
+          const staticResponse = await fetch(staticListUrl);
+          if (!staticResponse.ok) {
+            throw new Error("Failed to load static videos");
+          }
+
+          const staticPayload = await staticResponse.json();
+          if (!ignore) {
+            setMediaSource("static");
+            setVideos(Array.isArray(staticPayload.videos) ? staticPayload.videos : []);
+          }
+        };
+
+        if (USE_STATIC_MEDIA) {
+          await tryStatic();
+          return;
+        }
+
+        const response = await fetch(joinBackendPath(listEndpoint));
         if (!response.ok) {
-          throw new Error("Failed to load videos");
+          await tryStatic();
+          return;
         }
 
         const payload = await response.json();
         if (!ignore) {
+          setMediaSource("backend");
           setVideos(Array.isArray(payload.videos) ? payload.videos : []);
         }
       } catch (error) {
@@ -68,7 +114,7 @@ export function useRandomVideoBackground({
     return () => {
       ignore = true;
     };
-  }, [listEndpoint]);
+  }, [listEndpoint, mediaBasePath]);
 
   useEffect(() => {
     if (!videos.length) {
@@ -148,7 +194,11 @@ export function useRandomVideoBackground({
     sectionRef,
     videoRef,
     videoCount: videos.length,
-    currentVideoUrl: currentVideo ? `${mediaBasePath}/${encodeURIComponent(currentVideo)}` : "",
+    currentVideoUrl: currentVideo
+      ? mediaSource === "static"
+        ? joinAppPath(`${trimLeadingSlashes(mediaBasePath)}/${encodeURIComponent(currentVideo)}`)
+        : joinBackendPath(`${mediaBasePath}/${encodeURIComponent(currentVideo)}`)
+      : "",
     handleVideoAdvance: advanceVideo,
   };
 }

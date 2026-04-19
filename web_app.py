@@ -65,6 +65,23 @@ CORS(app, supports_credentials=True, origins=get_cors_origins())
 
 ROOT_DIR = Path(__file__).resolve().parent
 UI_DIST_DIR = ROOT_DIR / "ui improvement" / "dist"
+VIDEO_DIR = ROOT_DIR / "video"
+CONTACT_VIDEO_DIR = ROOT_DIR / "contact"
+HERO_VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".m4v", ".mov"}
+
+
+def list_media_files(directory):
+    if not directory.exists():
+        return []
+
+    return sorted(
+        [
+            path.name
+            for path in directory.iterdir()
+            if path.is_file() and path.suffix.lower() in HERO_VIDEO_EXTENSIONS
+        ],
+        key=str.lower,
+    )
 
 # --- Academy Database (50 Modules for Beginners) ---
 ACADEMY_DATA = [
@@ -171,6 +188,41 @@ def serve_spa_entry(path=""):
         return render_template('index.html')
 
     return abort(404)
+
+
+@app.route('/api/hero-videos')
+def get_hero_videos():
+    return jsonify({"videos": list_media_files(VIDEO_DIR)})
+
+
+@app.route('/api/contact-videos')
+def get_contact_videos():
+    return jsonify({"videos": list_media_files(CONTACT_VIDEO_DIR)})
+
+
+def serve_media_file(directory, filename):
+    requested_path = Path(filename)
+    if ".." in requested_path.parts:
+        return abort(404)
+
+    if requested_path.suffix.lower() not in HERO_VIDEO_EXTENSIONS:
+        return abort(404)
+
+    target = directory / requested_path
+    if not target.is_file():
+        return abort(404)
+
+    return send_from_directory(directory, str(requested_path), conditional=True)
+
+
+@app.route('/video/<path:filename>')
+def serve_hero_video(filename):
+    return serve_media_file(VIDEO_DIR, filename)
+
+
+@app.route('/contact-media/<path:filename>')
+def serve_contact_video(filename):
+    return serve_media_file(CONTACT_VIDEO_DIR, filename)
 
 # ==================== Academy APIs (100% Preserved) ====================
 @app.route('/api/academy')

@@ -15,6 +15,8 @@ export default defineConfig({
     proxy: {
       "/api": "http://127.0.0.1:5000",
       "/static": "http://127.0.0.1:5000",
+      "/video": "http://127.0.0.1:5000",
+      "/contact-media": "http://127.0.0.1:5000",
     },
   },
 });

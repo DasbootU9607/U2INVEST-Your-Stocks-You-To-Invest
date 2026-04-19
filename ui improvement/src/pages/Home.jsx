@@ -9,6 +9,7 @@ import {
   Star,
   CheckCircle,
 } from "lucide-react";
+import { useRandomVideoBackground } from "@/hooks/use-random-video-background";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -82,60 +83,79 @@ const faqs = [
 ];
 
 export default function Home() {
+  const { sectionRef, videoRef, currentVideoUrl, handleVideoAdvance } = useRandomVideoBackground({
+    listEndpoint: "/api/hero-videos",
+    mediaBasePath: "/video",
+  });
+
   return (
     <div className="bg-background">
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-        <div className="absolute inset-0 -z-10">
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-navy/4 rounded-full blur-3xl transform translate-x-1/3 -translate-y-1/4" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gold/8 rounded-full blur-3xl transform -translate-x-1/3 translate-y-1/4" />
+      <section
+        ref={sectionRef}
+        className="relative mt-16 min-h-[calc(100svh-4rem)] overflow-hidden"
+      >
+        <div className="absolute inset-0">
+          {currentVideoUrl ? (
+            <video
+              ref={videoRef}
+              className="absolute inset-0 h-full w-full object-cover"
+              src={currentVideoUrl}
+              muted
+              playsInline
+              autoPlay
+              preload="metadata"
+              disablePictureInPicture
+              aria-hidden="true"
+              onEnded={handleVideoAdvance}
+              onError={handleVideoAdvance}
+            />
+          ) : null}
+          <div className="absolute inset-0 bg-[linear-gradient(112deg,rgba(2,6,23,0.96)_8%,rgba(15,23,42,0.84)_34%,rgba(15,23,42,0.64)_58%,rgba(2,6,23,0.9)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(226,232,240,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(191,219,254,0.10),transparent_28%)]" />
         </div>
 
-        <div className="max-w-5xl mx-auto">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
-          >
-            <motion.div variants={fadeUp} className="mb-6">
-              <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-gold/10 text-gold border border-gold/20 rounded-full text-xs font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
-                Learn | Practice | Analyse
-              </span>
-            </motion.div>
-
-            <motion.h1
-              variants={fadeUp}
-              className="font-serif text-5xl md:text-7xl text-foreground leading-[1.05] mb-6 text-balance"
+        <div className="relative flex min-h-[calc(100svh-4rem)] items-center">
+          <div className="mx-auto w-full max-w-7xl px-6 py-14 md:py-16">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{ visible: { transition: { staggerChildren: 0.12 } } }}
+              className="max-w-3xl drop-shadow-[0_16px_50px_rgba(2,6,23,0.35)]"
             >
-              Build investing
-              <br />
-              <span className="text-navy italic">understanding.</span>
-            </motion.h1>
-
-            <motion.p
-              variants={fadeUp}
-              className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10 leading-relaxed"
-            >
-              U2INVEST combines a structured Academy, a simulated Trading Lab, and a
-              tool-using stock agent so you can study markets, practice decisions, and
-              research faster in one workflow.
-            </motion.p>
-
-            <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
-              <Link
-                to="/app"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-navy text-white rounded-xl font-medium hover:bg-navy/90 transition-colors"
+              <motion.h1
+                variants={fadeUp}
+                className="font-serif text-5xl md:text-7xl text-slate-50 leading-[1.02] mb-6 text-balance"
               >
-                Enter App <ArrowRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/product"
-                className="inline-flex items-center gap-2 px-6 py-3 border border-border rounded-xl text-sm hover:bg-muted transition-colors"
+                Build investing
+                <br />
+                <span className="text-slate-200 italic">understanding.</span>
+              </motion.h1>
+
+              <motion.p
+                variants={fadeUp}
+                className="text-lg md:text-xl text-slate-200/90 max-w-2xl mb-10 leading-relaxed"
               >
-                Explore Product
-              </Link>
+                U2INVEST combines a structured Academy, a simulated Trading Lab, and a
+                tool-using stock agent so you can study markets, practice decisions, and
+                research faster in one workflow.
+              </motion.p>
+
+              <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
+                <Link
+                  to="/app"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-white text-slate-950 rounded-xl font-medium hover:bg-white/90 transition-colors"
+                >
+                  Enter App <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  to="/product"
+                  className="inline-flex items-center gap-2 px-6 py-3 border border-white/25 bg-white/10 text-white rounded-xl text-sm hover:bg-white/15 transition-colors"
+                >
+                  Explore Product
+                </Link>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
@@ -317,3 +337,4 @@ export default function Home() {
     </div>
   );
 }
+

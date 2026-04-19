@@ -21,16 +21,9 @@ const navLinks = [
 ];
 
 export default function PublicNav() {
-  const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [productOpen, setProductOpen] = useState(false);
   const location = useLocation();
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     setMobileOpen(false);
@@ -39,13 +32,7 @@ export default function PublicNav() {
 
   return (
     <>
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-white/95 backdrop-blur-md border-b border-border shadow-sm"
-            : "bg-transparent"
-        }`}
-      >
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/96 backdrop-blur-md border-b border-border shadow-sm">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
             <img src={logoSrc} alt="U2INVEST" className="h-8 w-auto object-contain" />
@@ -170,3 +157,4 @@ export default function PublicNav() {
     </>
   );
 }
+

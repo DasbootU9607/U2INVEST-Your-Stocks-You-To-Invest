@@ -1,0 +1,44 @@
+services:
+  - type: web
+    name: u2invest-free
+    runtime: docker
+    plan: free
+    region: oregon
+    autoDeployTrigger: commit
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: TRUST_PROXY_HEADERS
+        value: "true"
+      - key: SESSION_COOKIE_SAMESITE
+        value: "Lax"
+      - key: SESSION_COOKIE_SECURE
+        value: "true"
+      - key: DATA_DIR
+        value: /tmp/u2invest-data
+      - key: CHECKPOINTS_DB_PATH
+        value: /tmp/u2invest-data/checkpoints.sqlite
+      - key: CHROMA_DB_DIR
+        value: /tmp/u2invest-data/chroma_db
+      - key: KNOWLEDGE_BASE_PATH
+        value: /app/knowledge
+      - key: HF_HOME
+        value: /tmp/u2invest-data/hf-home
+      - key: SENTENCE_TRANSFORMERS_HOME
+        value: /tmp/u2invest-data/sentence-transformers
+      - key: GUNICORN_WORKERS
+        value: "1"
+      - key: GUNICORN_THREADS
+        value: "2"
+      - key: GUNICORN_TIMEOUT
+        value: "180"
+      - key: DEEPSEEK_BASE_URL
+        value: https://api.deepseek.com
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: DEEPSEEK_API_KEY
+        sync: false

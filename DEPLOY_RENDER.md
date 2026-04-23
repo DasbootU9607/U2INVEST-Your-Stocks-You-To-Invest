@@ -30,6 +30,12 @@ This repo is now prepared to run as a single Render web service:
    - `/`
    - `/app/chat`
 
+## If Render Asks For A Payment Method
+
+Use `render-free.yaml` instead of `render.yaml`.
+
+That free option removes the persistent disk and changes the service to a free instance so you can test the full app without adding a card. See `DEPLOY_RENDER_FREE.md` for the exact steps.
+
 ## Recommended First Production Check
 
 Verify these items before changing the agent implementation:

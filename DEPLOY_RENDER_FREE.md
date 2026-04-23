@@ -29,6 +29,7 @@ This free setup is for demo use only:
 - `/api/health` should return `status: ok`.
 - `/` should load the marketing site.
 - `/app/chat` should load the chat app.
+- This free config already limits background playback to the smallest video files to reduce stalls on low-cost hosting.
 - If the service has been idle for a while, the first request can be slow because the free instance may need to wake up.
 
 ## When To Switch Back

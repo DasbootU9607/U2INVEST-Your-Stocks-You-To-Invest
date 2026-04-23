@@ -17,7 +17,7 @@ FROM python:3.11-slim AS runtime
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PORT=10000 \
+    PORT=7860 \
     FLASK_DEBUG=false \
     DATA_DIR=/app/data \
     CHECKPOINTS_DB_PATH=/app/data/checkpoints.sqlite \
@@ -27,14 +27,19 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+RUN useradd -m -u 1000 appuser
+
 COPY requirements.txt ./
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 COPY --from=frontend-builder ["/frontend/dist", "/app/ui improvement/dist"]
 
-RUN mkdir -p /app/data /app/knowledge /app/video /app/contact
+RUN mkdir -p /app/data /app/knowledge /app/video /app/contact && \
+    chown -R appuser:appuser /app
 
-EXPOSE 10000
+USER appuser
 
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-10000} --workers ${GUNICORN_WORKERS:-2} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-180} web_app:app"]
+EXPOSE 7860
+
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-7860} --workers ${GUNICORN_WORKERS:-2} --threads ${GUNICORN_THREADS:-4} --timeout ${GUNICORN_TIMEOUT:-180} web_app:app"]

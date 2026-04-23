@@ -4,12 +4,13 @@ from functools import lru_cache
 from langchain_core.tools import tool
 
 from market_demo import generate_fundamentals, generate_kline, generate_news, generate_quote
-from vector_store import build_vector_db
 
 
 @lru_cache(maxsize=1)
 def get_retriever():
     try:
+        from vector_store import build_vector_db
+
         return build_vector_db()
     except Exception as error:
         print(f"Knowledge base initialization failed: {error}")

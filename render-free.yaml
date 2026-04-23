@@ -24,6 +24,10 @@ services:
         value: /tmp/u2invest-data/checkpoints.sqlite
       - key: CHROMA_DB_DIR
         value: /tmp/u2invest-data/chroma_db
+      - key: BACKGROUND_VIDEO_MAX_MB
+        value: "8"
+      - key: BACKGROUND_VIDEO_MAX_COUNT
+        value: "4"
       - key: KNOWLEDGE_BASE_PATH
         value: /app/knowledge
       - key: HF_HOME

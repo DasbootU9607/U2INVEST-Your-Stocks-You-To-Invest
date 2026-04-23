@@ -79,18 +79,59 @@ CONTACT_VIDEO_DIR = ROOT_DIR / "contact"
 HERO_VIDEO_EXTENSIONS = {".mp4", ".webm", ".ogg", ".m4v", ".mov"}
 
 
+def get_positive_float_env(name):
+    value = os.getenv(name, "").strip()
+    if not value:
+        return None
+
+    try:
+        parsed = float(value)
+    except ValueError:
+        print(f"WARNING: Invalid value for {name}: {value}")
+        return None
+
+    return parsed if parsed > 0 else None
+
+
+def get_positive_int_env(name):
+    value = os.getenv(name, "").strip()
+    if not value:
+        return None
+
+    try:
+        parsed = int(value)
+    except ValueError:
+        print(f"WARNING: Invalid value for {name}: {value}")
+        return None
+
+    return parsed if parsed > 0 else None
+
+
 def list_media_files(directory):
     if not directory.exists():
         return []
 
-    return sorted(
-        [
-            path.name
-            for path in directory.iterdir()
-            if path.is_file() and path.suffix.lower() in HERO_VIDEO_EXTENSIONS
-        ],
-        key=str.lower,
-    )
+    media_files = [
+        path
+        for path in directory.iterdir()
+        if path.is_file() and path.suffix.lower() in HERO_VIDEO_EXTENSIONS
+    ]
+
+    max_file_mb = get_positive_float_env("BACKGROUND_VIDEO_MAX_MB")
+    if max_file_mb is not None:
+        max_bytes = max_file_mb * 1024 * 1024
+        filtered_files = [path for path in media_files if path.stat().st_size <= max_bytes]
+        if filtered_files:
+            media_files = filtered_files
+
+    max_count = get_positive_int_env("BACKGROUND_VIDEO_MAX_COUNT")
+    if max_count is not None and len(media_files) > max_count:
+        media_files = sorted(
+            media_files,
+            key=lambda path: (path.stat().st_size, path.name.lower()),
+        )[:max_count]
+
+    return [path.name for path in sorted(media_files, key=lambda path: path.name.lower())]
 
 
 def directory_is_writable(directory):

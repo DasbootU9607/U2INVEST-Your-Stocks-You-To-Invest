@@ -1,5 +1,6 @@
 import os
 import re
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -30,6 +31,30 @@ TICKER_STOPWORDS = {
     "TO",
     "U2",
     "USD",
+}
+
+TRADINGAGENTS_TRIGGER_KEYWORDS = {
+    "analyze",
+    "analysis",
+    "deep analysis",
+    "full analysis",
+    "multi-agent",
+    "tradingagents",
+    "bull case",
+    "bear case",
+    "bullish",
+    "bearish",
+    "buy",
+    "sell",
+    "hold",
+    "rating",
+    "outlook",
+    "thesis",
+    "price target",
+    "recommend",
+    "recommendation",
+    "risk",
+    "portfolio",
 }
 
 KNOWN_SYMBOLS = sorted(MARKET_META.keys(), key=len, reverse=True)
@@ -66,22 +91,40 @@ def agent_is_configured() -> bool:
 
 def run_agent_message(user_message: str, session_id: str) -> Tuple[str, List[Dict[str, Any]], str]:
     backend = get_agent_backend_mode()
+    legacy_configured = bool(os.getenv("DEEPSEEK_API_KEY"))
 
     if backend in {"tradingagents", "auto"}:
         trading_request = resolve_tradingagents_request(user_message)
 
         if backend == "tradingagents" or trading_request:
             try:
-                response, tools_used = run_tradingagents_message(
+                response, tools_used = run_tradingagents_message_with_timeout(
                     user_message,
                     trading_request=trading_request,
                 )
                 return response, tools_used, "tradingagents"
             except Exception as error:
-                if backend == "tradingagents":
+                if backend == "tradingagents" and not legacy_configured:
                     raise RuntimeError(f"TradingAgents backend failed: {error}") from error
 
                 print(f"TradingAgents fallback triggered: {error}")
+                if legacy_configured:
+                    response, tool_results = run_legacy_message(user_message, session_id)
+                    fallback_note = (
+                        "TradingAgents timed out on this deployment, so I used the fast fallback agent.\n\n"
+                        if isinstance(error, TimeoutError)
+                        else "TradingAgents was unavailable on this deployment, so I used the fast fallback agent.\n\n"
+                    )
+                    tool_results = [
+                        {
+                            "tool": "tradingagents_fallback",
+                            "args": {
+                                "reason": str(error),
+                            },
+                        },
+                        *tool_results,
+                    ]
+                    return fallback_note + response, tool_results, "legacy-fallback"
 
     response, tools_used = run_legacy_message(user_message, session_id)
     return response, tools_used, "legacy"
@@ -175,7 +218,7 @@ def run_tradingagents_message(
         analyst.strip()
         for analyst in os.getenv(
             "TRADINGAGENTS_SELECTED_ANALYSTS",
-            "market,social,news,fundamentals",
+            "market,fundamentals",
         ).split(",")
         if analyst.strip()
     ]
@@ -213,6 +256,23 @@ def run_tradingagents_message(
     return response, tools_used
 
 
+def run_tradingagents_message_with_timeout(
+    user_message: str,
+    trading_request: Optional[Dict[str, str]] = None,
+) -> Tuple[str, List[Dict[str, Any]]]:
+    timeout_seconds = _get_positive_int_env("TRADINGAGENTS_TIMEOUT_SECONDS", 25)
+
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(run_tradingagents_message, user_message, trading_request)
+        try:
+            return future.result(timeout=timeout_seconds)
+        except FuturesTimeoutError as error:
+            future.cancel()
+            raise TimeoutError(
+                f"TradingAgents exceeded {timeout_seconds}s timeout"
+            ) from error
+
+
 def resolve_tradingagents_request(user_message: str) -> Optional[Dict[str, str]]:
     normalized_message = user_message.strip()
     if not normalized_message:
@@ -225,6 +285,12 @@ def resolve_tradingagents_request(user_message: str) -> Optional[Dict[str, str]]
         or extract_generic_ticker(normalized_message)
     )
     if not symbol:
+        return None
+
+    lower_message = normalized_message.lower()
+    force_for_stocks = os.getenv("TRADINGAGENTS_FORCE_FOR_STOCKS", "false").strip().lower() == "true"
+    has_trigger = any(keyword in lower_message for keyword in TRADINGAGENTS_TRIGGER_KEYWORDS)
+    if not force_for_stocks and not has_trigger:
         return None
 
     return {

@@ -1,15 +1,19 @@
 import json
+from functools import lru_cache
 
 from langchain_core.tools import tool
 
 from market_demo import generate_fundamentals, generate_kline, generate_news, generate_quote
 from vector_store import build_vector_db
 
-# Initialize RAG retriever
-try:
-    retriever = build_vector_db()
-except Exception:
-    retriever = None
+
+@lru_cache(maxsize=1)
+def get_retriever():
+    try:
+        return build_vector_db()
+    except Exception as error:
+        print(f"Knowledge base initialization failed: {error}")
+        return None
 
 
 @tool
@@ -73,6 +77,7 @@ def get_fundamental_data(symbol: str):
 @tool
 def query_knowledge_base(query: str):
     """Retrieve investment guides and industry research from local PDF documents."""
+    retriever = get_retriever()
     if not retriever:
         return "Knowledge base not initialized."
 

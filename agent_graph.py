@@ -9,8 +9,12 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 from langgraph.checkpoint.sqlite import SqliteSaver
 from tools import tools
+from runtime_config import CHECKPOINTS_DB_PATH
 
 load_dotenv()
+
+DEEPSEEK_MODEL = os.getenv("DEEPSEEK_MODEL", "deepseek-chat")
+DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 
 # 1. Define State
 class AgentState(TypedDict):
@@ -18,9 +22,9 @@ class AgentState(TypedDict):
 
 # 2. Setup LLM & Tools
 llm = ChatOpenAI(
-    model='deepseek-chat',
+    model=DEEPSEEK_MODEL,
     openai_api_key=os.getenv("DEEPSEEK_API_KEY"),
-    openai_api_base=os.getenv("DEEPSEEK_BASE_URL"),
+    openai_api_base=DEEPSEEK_BASE_URL,
     temperature=0
 )
 llm_with_tools = llm.bind_tools(tools)
@@ -71,7 +75,7 @@ def route_logic(state: AgentState):
 
 # 4. Persistence Setup
 # Connection remains open for the lifecycle of the app
-conn = sqlite3.connect("checkpoints.sqlite", check_same_thread=False)
+conn = sqlite3.connect(str(CHECKPOINTS_DB_PATH), check_same_thread=False)
 memory = SqliteSaver(conn)
 
 # 5. Build Graph

@@ -1,14 +1,18 @@
-version: '3.8'
-
 services:
-  stock-agent:
+  u2invest:
     build: .
     ports:
-      - "5000:5000"
+      - "5000:10000"
     env_file:
       - .env
+    environment:
+      PORT: 10000
+      FLASK_DEBUG: "false"
+      DATA_DIR: /app/data
+      CHECKPOINTS_DB_PATH: /app/data/checkpoints.sqlite
+      CHROMA_DB_DIR: /app/data/chroma_db
+      HF_HOME: /app/data/hf-home
+      SENTENCE_TRANSFORMERS_HOME: /app/data/sentence-transformers
     volumes:
-      - .:/app  # Maps your local folder to the container for real-time updates
-      - ./chroma_db:/app/chroma_db  # Persistent RAG database
-      - ./checkpoints.sqlite:/app/checkpoints.sqlite  # Persistent Chat Memory
-    restart: always
+      - ./data:/app/data
+    restart: unless-stopped

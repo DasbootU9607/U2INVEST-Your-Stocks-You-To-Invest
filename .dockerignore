@@ -1,0 +1,18 @@
+.env
+.env.*
+!.env.example
+.git
+.github
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.sqlite
+chroma_db/
+data/
+node_modules/
+ui improvement/node_modules/
+ui improvement/dist/
+_profile_repo/
+_remote_repo/
+*.log

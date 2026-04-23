@@ -11,7 +11,15 @@ from flask import Flask, abort, render_template, request, jsonify, send_from_dir
 from flask_cors import CORS
 from dotenv import load_dotenv
 from collections import defaultdict
+from werkzeug.middleware.proxy_fix import ProxyFix
 from market_demo import MARKET_POOL, generate_kline, generate_news, generate_quotes
+from runtime_config import (
+    CHROMA_DB_DIR,
+    CHECKPOINTS_DB_PATH,
+    DATA_DIR,
+    KNOWLEDGE_BASE_PATH,
+    ROOT_DIR,
+)
 
 
 def safe_print(*args, **kwargs):
@@ -33,12 +41,14 @@ print = safe_print
 load_dotenv()
 
 app = Flask(__name__)
+if os.getenv("TRUST_PROXY_HEADERS", "true").lower() == "true":
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1)
 
 # Use environment variable for secret key (SECURITY BEST PRACTICE)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 if not app.secret_key:
-    print("鈿狅笍  WARNING: FLASK_SECRET_KEY not set in .env file!")
-    print("   Using development key. See FLASK_SECRET_KEY_SETUP.md for instructions.")
+    print("WARNING: FLASK_SECRET_KEY not set.")
+    print("Using a development secret key. Set FLASK_SECRET_KEY before deploying.")
     app.secret_key = 'dev-key-CHANGE-ME-in-production'
 
 app.config['SESSION_COOKIE_SAMESITE'] = os.getenv('SESSION_COOKIE_SAMESITE', 'Lax')
@@ -63,7 +73,6 @@ def get_cors_origins():
 
 CORS(app, supports_credentials=True, origins=get_cors_origins())
 
-ROOT_DIR = Path(__file__).resolve().parent
 UI_DIST_DIR = ROOT_DIR / "ui improvement" / "dist"
 VIDEO_DIR = ROOT_DIR / "video"
 CONTACT_VIDEO_DIR = ROOT_DIR / "contact"
@@ -82,6 +91,17 @@ def list_media_files(directory):
         ],
         key=str.lower,
     )
+
+
+def directory_is_writable(directory):
+    try:
+        directory.mkdir(parents=True, exist_ok=True)
+        probe_path = directory / ".write-test"
+        probe_path.write_text("ok", encoding="utf-8")
+        probe_path.unlink(missing_ok=True)
+        return True, None
+    except OSError as error:
+        return False, str(error)
 
 # --- Academy Database (50 Modules for Beginners) ---
 ACADEMY_DATA = [
@@ -198,6 +218,34 @@ def get_hero_videos():
 @app.route('/api/contact-videos')
 def get_contact_videos():
     return jsonify({"videos": list_media_files(CONTACT_VIDEO_DIR)})
+
+
+@app.route('/api/health')
+def health_check():
+    writable, error = directory_is_writable(DATA_DIR)
+    status = {
+        "status": "ok" if writable else "degraded",
+        "service": "u2invest",
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "agent_configured": bool(os.getenv("DEEPSEEK_API_KEY")),
+        "storage": {
+            "data_dir": str(DATA_DIR),
+            "checkpoints_db": str(CHECKPOINTS_DB_PATH),
+            "chroma_db_dir": str(CHROMA_DB_DIR),
+            "knowledge_base_path": str(KNOWLEDGE_BASE_PATH),
+            "writable": writable,
+        },
+        "frontend": {
+            "ui_dist_exists": UI_DIST_DIR.exists(),
+            "hero_video_count": len(list_media_files(VIDEO_DIR)),
+            "contact_video_count": len(list_media_files(CONTACT_VIDEO_DIR)),
+        },
+    }
+
+    if error:
+        status["storage"]["error"] = error
+
+    return jsonify(status), 200 if writable else 503
 
 
 def serve_media_file(directory, filename):
@@ -655,13 +703,12 @@ def serve_frontend(path):
 
 if __name__ == '__main__':
     print("\n" + "="*60)
-    print("馃殌 U2INVEST Server Starting...")
+    print("U2INVEST Server Starting...")
     print("="*60)
     if not os.getenv('FLASK_SECRET_KEY'):
-        print("鈿狅笍  WARNING: Using development secret key!")
-        print("   See FLASK_SECRET_KEY_SETUP.md for production setup.")
-    print(f"鉁?Stock Pool: {list(STOCK_POOL.keys())}")
-    print(f"鉁?Academy Modules: {len(ACADEMY_DB)}")
+        print("WARNING: Using development secret key.")
+    print(f"Stock Pool: {list(STOCK_POOL.keys())}")
+    print(f"Academy Modules: {len(ACADEMY_DB)}")
     print("="*60 + "\n")
     
     debug_default = 'false' if os.getenv('PORT') else 'true'

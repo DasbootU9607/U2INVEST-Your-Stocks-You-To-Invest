@@ -95,6 +95,8 @@ export default function Home() {
   } = useRandomVideoBackground({
     listEndpoint: "/api/hero-videos",
     mediaBasePath: "/video",
+    staticListPath: "/background-media/home/index.json",
+    staticMediaBasePath: "/background-media/home",
   });
 
   return (

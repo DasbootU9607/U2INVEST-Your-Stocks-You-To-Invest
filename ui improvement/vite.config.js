@@ -13,13 +13,13 @@ function copyBackgroundMediaPlugin() {
   const mediaDirectories = [
     {
       source: path.resolve(repoRoot, "video"),
-      destination: "video",
+      destination: "background-media/home",
       maxAssetBytes: 14 * MB,
       maxFiles: 6,
     },
     {
       source: path.resolve(repoRoot, "contact"),
-      destination: "contact-media",
+      destination: "background-media/contact",
       maxAssetBytes: 12 * MB,
       maxFiles: 5,
     },
@@ -58,26 +58,30 @@ function copyBackgroundMediaPlugin() {
           .sort((left, right) => left.size - right.size)
           .slice(0, directory.maxFiles);
 
-        const selectedFiles = (filteredFiles.length > 0 ? filteredFiles : filesWithStats)
-          .sort((left, right) =>
-            left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
-          )
-          .map((file) => file.name);
+        const selectedFiles = (filteredFiles.length > 0 ? filteredFiles : filesWithStats).sort(
+          (left, right) => left.size - right.size || left.name.localeCompare(right.name)
+        );
 
         const targetDir = path.join(outDir, directory.destination);
         await fs.rm(targetDir, { recursive: true, force: true });
         await fs.mkdir(targetDir, { recursive: true });
 
-        for (const fileName of selectedFiles) {
+        for (const file of selectedFiles) {
           await fs.copyFile(
-            path.join(directory.source, fileName),
-            path.join(targetDir, fileName)
+            path.join(directory.source, file.name),
+            path.join(targetDir, file.name)
           );
         }
 
         await fs.writeFile(
           path.join(targetDir, "index.json"),
-          JSON.stringify({ videos: selectedFiles }, null, 2),
+          JSON.stringify(
+            {
+              videos: selectedFiles.map((file) => file.name),
+            },
+            null,
+            2
+          ),
           "utf8"
         );
       }

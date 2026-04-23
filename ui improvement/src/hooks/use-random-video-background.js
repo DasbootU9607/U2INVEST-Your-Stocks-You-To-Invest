@@ -79,6 +79,8 @@ function getAlternateSlotIndex(slotIndex) {
 export function useRandomVideoBackground({
   listEndpoint,
   mediaBasePath,
+  staticListPath,
+  staticMediaBasePath,
   activeThreshold = 0.55,
 }) {
   const sectionRef = useRef(null);
@@ -126,10 +128,14 @@ export function useRandomVideoBackground({
     let ignore = false;
 
     async function loadVideos() {
-      const staticListUrl = joinAppPath(`${trimLeadingSlashes(mediaBasePath)}/index.json`);
+      const staticListUrl = staticListPath ? joinAppPath(staticListPath) : "";
 
       try {
         const tryStatic = async () => {
+          if (!staticListUrl || !staticMediaBasePath) {
+            throw new Error("Static video manifest is not configured");
+          }
+
           const staticResponse = await fetch(staticListUrl);
           if (!staticResponse.ok) {
             throw new Error("Failed to load static videos");
@@ -147,16 +153,20 @@ export function useRandomVideoBackground({
           return;
         }
 
-        const response = await fetch(joinBackendPath(listEndpoint));
-        if (!response.ok) {
+        try {
           await tryStatic();
           return;
-        }
+        } catch (staticError) {
+          const response = await fetch(joinBackendPath(listEndpoint));
+          if (!response.ok) {
+            throw staticError;
+          }
 
-        const payload = await response.json();
-        if (!ignore) {
-          setMediaSource("backend");
-          setVideos(Array.isArray(payload.videos) ? payload.videos : []);
+          const payload = await response.json();
+          if (!ignore) {
+            setMediaSource("backend");
+            setVideos(Array.isArray(payload.videos) ? payload.videos : []);
+          }
         }
       } catch (error) {
         console.error("Video background load error:", error);
@@ -210,7 +220,9 @@ export function useRandomVideoBackground({
       slotTokenRef.current[slotIndex],
       videoName,
       mediaSourceRef.current,
-      mediaBasePath
+      mediaSourceRef.current === "static" && staticMediaBasePath
+        ? staticMediaBasePath
+        : mediaBasePath
     );
   }
 
@@ -263,10 +275,20 @@ export function useRandomVideoBackground({
     activeSlotRef.current = 0;
     setActiveSlot(0);
 
-    const initialSlots = [buildSlot(0, takeNextVideoName()), buildSlot(1, takeNextVideoName())];
+    const initialVideos = videos.slice(0, 2);
+    const remainingVideos = videos.slice(initialVideos.length);
+
+    queueRef.current = buildVideoRound(remainingVideos, initialVideos.at(-1) || null);
+    queueIndexRef.current = 0;
+    lastServedVideoRef.current = initialVideos.at(-1) || null;
+
+    const initialSlots = [
+      buildSlot(0, initialVideos[0] || ""),
+      buildSlot(1, initialVideos[1] || initialVideos[0] || ""),
+    ];
     videoSlotsRef.current = initialSlots;
     setVideoSlots(initialSlots);
-  }, [videos, mediaSource, mediaBasePath]);
+  }, [videos, mediaSource, mediaBasePath, staticMediaBasePath]);
 
   useEffect(() => {
     const sectionNode = sectionRef.current;

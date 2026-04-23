@@ -61,6 +61,8 @@ export default function Contact() {
   } = useRandomVideoBackground({
     listEndpoint: "/api/contact-videos",
     mediaBasePath: "/contact-media",
+    staticListPath: "/background-media/contact/index.json",
+    staticMediaBasePath: "/background-media/contact",
     activeThreshold: 0.4,
   });
 

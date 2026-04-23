@@ -5,13 +5,24 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 const MEDIA_EXTENSIONS = new Set([".mp4", ".webm", ".ogg", ".m4v", ".mov"]);
+const MB = 1024 * 1024;
 
 function copyBackgroundMediaPlugin() {
   const projectRoot = __dirname;
   const repoRoot = path.resolve(projectRoot, "..");
   const mediaDirectories = [
-    { source: path.resolve(repoRoot, "video"), destination: "video" },
-    { source: path.resolve(repoRoot, "contact"), destination: "contact-media" },
+    {
+      source: path.resolve(repoRoot, "video"),
+      destination: "video",
+      maxAssetBytes: 14 * MB,
+      maxFiles: 6,
+    },
+    {
+      source: path.resolve(repoRoot, "contact"),
+      destination: "contact-media",
+      maxAssetBytes: 12 * MB,
+      maxFiles: 5,
+    },
   ];
 
   return {
@@ -25,18 +36,39 @@ function copyBackgroundMediaPlugin() {
         }
 
         const entries = await fs.readdir(directory.source, { withFileTypes: true });
-        const files = entries
+        const mediaFiles = entries
           .filter(
             (entry) =>
               entry.isFile() && MEDIA_EXTENSIONS.has(path.extname(entry.name).toLowerCase())
           )
-          .map((entry) => entry.name)
-          .sort((left, right) => left.localeCompare(right, undefined, { sensitivity: "base" }));
+          .map((entry) => ({
+            name: entry.name,
+            sourcePath: path.join(directory.source, entry.name),
+          }));
+
+        const filesWithStats = await Promise.all(
+          mediaFiles.map(async (file) => ({
+            ...file,
+            size: (await fs.stat(file.sourcePath)).size,
+          }))
+        );
+
+        const filteredFiles = filesWithStats
+          .filter((file) => file.size <= directory.maxAssetBytes)
+          .sort((left, right) => left.size - right.size)
+          .slice(0, directory.maxFiles);
+
+        const selectedFiles = (filteredFiles.length > 0 ? filteredFiles : filesWithStats)
+          .sort((left, right) =>
+            left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+          )
+          .map((file) => file.name);
 
         const targetDir = path.join(outDir, directory.destination);
+        await fs.rm(targetDir, { recursive: true, force: true });
         await fs.mkdir(targetDir, { recursive: true });
 
-        for (const fileName of files) {
+        for (const fileName of selectedFiles) {
           await fs.copyFile(
             path.join(directory.source, fileName),
             path.join(targetDir, fileName)
@@ -45,7 +77,7 @@ function copyBackgroundMediaPlugin() {
 
         await fs.writeFile(
           path.join(targetDir, "index.json"),
-          JSON.stringify({ videos: files }, null, 2),
+          JSON.stringify({ videos: selectedFiles }, null, 2),
           "utf8"
         );
       }

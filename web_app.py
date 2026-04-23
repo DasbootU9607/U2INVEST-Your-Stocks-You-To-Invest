@@ -12,6 +12,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from collections import defaultdict
 from werkzeug.middleware.proxy_fix import ProxyFix
+from agent_service import agent_is_configured, run_agent_message
 from market_demo import MARKET_POOL, generate_kline, generate_news, generate_quotes
 from runtime_config import (
     CHROMA_DB_DIR,
@@ -268,7 +269,7 @@ def health_check():
         "status": "ok" if writable else "degraded",
         "service": "u2invest",
         "timestamp": datetime.utcnow().isoformat() + "Z",
-        "agent_configured": bool(os.getenv("DEEPSEEK_API_KEY")),
+        "agent_configured": agent_is_configured(),
         "storage": {
             "data_dir": str(DATA_DIR),
             "checkpoints_db": str(CHECKPOINTS_DB_PATH),
@@ -573,13 +574,13 @@ def agent_chat():
         }
     
     current_session = CHAT_SESSIONS[user_id][session_id]
-    if not os.getenv('DEEPSEEK_API_KEY'):
+    if not agent_is_configured():
         current_session["messages"].append({
             "role": "user",
             "content": user_message,
             "timestamp": datetime.now().isoformat()
         })
-        error_msg = "DeepSeek is not configured. Set DEEPSEEK_API_KEY in .env or in your cloud service environment."
+        error_msg = "The agent backend is not configured. Set the required API key in your cloud service environment."
         current_session["messages"].append({
             "role": "assistant",
             "content": error_msg,
@@ -598,29 +599,10 @@ def agent_chat():
     
     # Try real agent
     try:
-        from agent_graph import stock_agent_app
-        from langchain_core.messages import HumanMessage
-        
-        # Use session_id as thread_id for LangGraph persistence
-        config = {"configurable": {"thread_id": session_id}}
-        initial_state = {"messages": [HumanMessage(content=user_message)]}
-        
-        response_content = ""
-        tool_results = []
-        
-        for event in stock_agent_app.stream(initial_state, config):
-            for node_name, output in event.items():
-                if "messages" in output:
-                    last_msg = output["messages"][-1]
-                    if hasattr(last_msg, 'content') and last_msg.content:
-                        response_content = last_msg.content
-                    
-                    if hasattr(last_msg, 'tool_calls') and last_msg.tool_calls:
-                        for tool_call in last_msg.tool_calls:
-                            tool_results.append({
-                                "tool": tool_call.get('name', 'unknown'),
-                                "args": tool_call.get('args', {})
-                            })
+        response_content, tool_results, backend_used = run_agent_message(
+            user_message,
+            session_id,
+        )
         
         current_session["messages"].append({
             "role": "assistant",
@@ -629,7 +611,7 @@ def agent_chat():
             "tools_used": tool_results
         })
         
-        print(f"鉁?Agent response: {response_content[:100]}...")
+        print(f"鉁?Agent response ({backend_used}): {response_content[:100]}...")
         return jsonify({
             "status": "success",
             "session_id": session_id,

@@ -30,3 +30,4 @@ requests>=2.31.0
 beautifulsoup4>=4.12.2
 langgraph-checkpoint-sqlite
 gunicorn>=21.2.0
+tradingagents @ git+https://github.com/TauricResearch/TradingAgents.git@v0.2.3

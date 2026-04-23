@@ -9,6 +9,7 @@ import {
   Star,
   CheckCircle,
 } from "lucide-react";
+import { BufferedVideoBackground } from "@/components/layout/BufferedVideoBackground";
 import { useRandomVideoBackground } from "@/hooks/use-random-video-background";
 
 const fadeUp = {
@@ -83,7 +84,15 @@ const faqs = [
 ];
 
 export default function Home() {
-  const { sectionRef, videoRef, currentVideoUrl, handleVideoAdvance } = useRandomVideoBackground({
+  const {
+    activeSlot,
+    handleVideoAdvance,
+    handleVideoError,
+    handleVideoReady,
+    sectionRef,
+    setVideoNode,
+    videoSlots,
+  } = useRandomVideoBackground({
     listEndpoint: "/api/hero-videos",
     mediaBasePath: "/video",
   });
@@ -95,21 +104,14 @@ export default function Home() {
         className="relative mt-16 min-h-[calc(100svh-4rem)] overflow-hidden"
       >
         <div className="absolute inset-0">
-          {currentVideoUrl ? (
-            <video
-              ref={videoRef}
-              className="absolute inset-0 h-full w-full object-cover"
-              src={currentVideoUrl}
-              muted
-              playsInline
-              autoPlay
-              preload="metadata"
-              disablePictureInPicture
-              aria-hidden="true"
-              onEnded={handleVideoAdvance}
-              onError={handleVideoAdvance}
-            />
-          ) : null}
+          <BufferedVideoBackground
+            activeSlot={activeSlot}
+            handleVideoAdvance={handleVideoAdvance}
+            handleVideoError={handleVideoError}
+            handleVideoReady={handleVideoReady}
+            setVideoNode={setVideoNode}
+            videoSlots={videoSlots}
+          />
           <div className="absolute inset-0 bg-[linear-gradient(112deg,rgba(2,6,23,0.96)_8%,rgba(15,23,42,0.84)_34%,rgba(15,23,42,0.64)_58%,rgba(2,6,23,0.9)_100%)]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(226,232,240,0.12),transparent_26%),radial-gradient(circle_at_bottom_left,rgba(191,219,254,0.10),transparent_28%)]" />
         </div>

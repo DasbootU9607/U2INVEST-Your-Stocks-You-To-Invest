@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Mail, Clock, CheckCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
+import { BufferedVideoBackground } from "@/components/layout/BufferedVideoBackground";
 import { useRandomVideoBackground } from "@/hooks/use-random-video-background";
 
 const fadeUp = { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } };
@@ -49,7 +50,15 @@ export default function Contact() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
-  const { sectionRef, videoRef, currentVideoUrl, handleVideoAdvance } = useRandomVideoBackground({
+  const {
+    activeSlot,
+    handleVideoAdvance,
+    handleVideoError,
+    handleVideoReady,
+    sectionRef,
+    setVideoNode,
+    videoSlots,
+  } = useRandomVideoBackground({
     listEndpoint: "/api/contact-videos",
     mediaBasePath: "/contact-media",
     activeThreshold: 0.4,
@@ -87,21 +96,14 @@ export default function Contact() {
       className="relative mt-16 min-h-[calc(100svh-4rem)] overflow-hidden"
     >
       <div className="absolute inset-0">
-        {currentVideoUrl ? (
-          <video
-            ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover"
-            src={currentVideoUrl}
-            muted
-            playsInline
-            autoPlay
-            preload="metadata"
-            disablePictureInPicture
-            aria-hidden="true"
-            onEnded={handleVideoAdvance}
-            onError={handleVideoAdvance}
-          />
-        ) : null}
+        <BufferedVideoBackground
+          activeSlot={activeSlot}
+          handleVideoAdvance={handleVideoAdvance}
+          handleVideoError={handleVideoError}
+          handleVideoReady={handleVideoReady}
+          setVideoNode={setVideoNode}
+          videoSlots={videoSlots}
+        />
         <div className="absolute inset-0 bg-[linear-gradient(116deg,rgba(2,6,23,0.97)_8%,rgba(15,23,42,0.84)_36%,rgba(15,23,42,0.66)_60%,rgba(2,6,23,0.92)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(226,232,240,0.10),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(191,219,254,0.12),transparent_24%)]" />
       </div>

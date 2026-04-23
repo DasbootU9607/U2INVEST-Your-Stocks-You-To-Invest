@@ -45,25 +45,82 @@ function joinBackendPath(path) {
   return API_BASE ? `${API_BASE}${path}` : path;
 }
 
+function buildVideoUrl(videoName, mediaSource, mediaBasePath) {
+  if (!videoName) {
+    return "";
+  }
+
+  const encodedVideoName = encodeURIComponent(videoName);
+
+  return mediaSource === "static"
+    ? joinAppPath(`${trimLeadingSlashes(mediaBasePath)}/${encodedVideoName}`)
+    : joinBackendPath(`${mediaBasePath}/${encodedVideoName}`);
+}
+
+function createVideoSlot(slotIndex, token, videoName, mediaSource, mediaBasePath) {
+  return {
+    key: `${slotIndex}-${token}`,
+    name: videoName,
+    src: buildVideoUrl(videoName, mediaSource, mediaBasePath),
+  };
+}
+
+function createEmptyVideoSlots(mediaSource, mediaBasePath) {
+  return [
+    createVideoSlot(0, 0, "", mediaSource, mediaBasePath),
+    createVideoSlot(1, 0, "", mediaSource, mediaBasePath),
+  ];
+}
+
+function getAlternateSlotIndex(slotIndex) {
+  return slotIndex === 0 ? 1 : 0;
+}
+
 export function useRandomVideoBackground({
   listEndpoint,
   mediaBasePath,
   activeThreshold = 0.55,
 }) {
   const sectionRef = useRef(null);
-  const videoRef = useRef(null);
-  const playlistRef = useRef([]);
-  const playlistIndexRef = useRef(0);
+  const videoNodesRef = useRef([null, null]);
+  const queueRef = useRef([]);
+  const queueIndexRef = useRef(0);
+  const slotReadyRef = useRef([false, false]);
+  const slotTokenRef = useRef([0, 0]);
+  const lastServedVideoRef = useRef(null);
   const videosRef = useRef([]);
+  const mediaSourceRef = useRef("backend");
+  const isActiveRef = useRef(true);
+  const activeSlotRef = useRef(0);
+  const videoSlotsRef = useRef(createEmptyVideoSlots("backend", mediaBasePath));
 
   const [videos, setVideos] = useState([]);
-  const [currentVideo, setCurrentVideo] = useState("");
+  const [videoSlots, setVideoSlots] = useState(() =>
+    createEmptyVideoSlots("backend", mediaBasePath)
+  );
+  const [activeSlot, setActiveSlot] = useState(0);
   const [isActive, setIsActive] = useState(true);
   const [mediaSource, setMediaSource] = useState("backend");
 
   useEffect(() => {
     videosRef.current = videos;
   }, [videos]);
+
+  useEffect(() => {
+    mediaSourceRef.current = mediaSource;
+  }, [mediaSource]);
+
+  useEffect(() => {
+    isActiveRef.current = isActive;
+  }, [isActive]);
+
+  useEffect(() => {
+    activeSlotRef.current = activeSlot;
+  }, [activeSlot]);
+
+  useEffect(() => {
+    videoSlotsRef.current = videoSlots;
+  }, [videoSlots]);
 
   useEffect(() => {
     let ignore = false;
@@ -116,19 +173,100 @@ export function useRandomVideoBackground({
     };
   }, [listEndpoint, mediaBasePath]);
 
-  useEffect(() => {
-    if (!videos.length) {
-      playlistRef.current = [];
-      playlistIndexRef.current = 0;
-      setCurrentVideo("");
+  function takeNextVideoName() {
+    if (!videosRef.current.length) {
+      return "";
+    }
+
+    if (!queueRef.current.length || queueIndexRef.current >= queueRef.current.length) {
+      queueRef.current = buildVideoRound(videosRef.current, lastServedVideoRef.current);
+      queueIndexRef.current = 0;
+    }
+
+    const nextVideoName = queueRef.current[queueIndexRef.current] || "";
+    queueIndexRef.current += 1;
+
+    if (nextVideoName) {
+      lastServedVideoRef.current = nextVideoName;
+    }
+
+    return nextVideoName;
+  }
+
+  function updateVideoSlots(producer) {
+    setVideoSlots((currentSlots) => {
+      const nextSlots =
+        typeof producer === "function" ? producer(currentSlots) : producer;
+      videoSlotsRef.current = nextSlots;
+      return nextSlots;
+    });
+  }
+
+  function buildSlot(slotIndex, videoName) {
+    slotTokenRef.current[slotIndex] += 1;
+
+    return createVideoSlot(
+      slotIndex,
+      slotTokenRef.current[slotIndex],
+      videoName,
+      mediaSourceRef.current,
+      mediaBasePath
+    );
+  }
+
+  function assignSlotVideo(slotIndex, videoName) {
+    slotReadyRef.current[slotIndex] = false;
+
+    updateVideoSlots((currentSlots) => {
+      const nextSlots = [...currentSlots];
+      nextSlots[slotIndex] = buildSlot(slotIndex, videoName);
+      return nextSlots;
+    });
+  }
+
+  function refillSlot(slotIndex) {
+    assignSlotVideo(slotIndex, takeNextVideoName());
+  }
+
+  function playSlot(slotIndex) {
+    const videoNode = videoNodesRef.current[slotIndex];
+
+    if (!videoNode || !videoSlotsRef.current[slotIndex]?.src) {
       return;
     }
 
-    const nextRound = buildVideoRound(videos);
-    playlistRef.current = nextRound;
-    playlistIndexRef.current = 0;
-    setCurrentVideo(nextRound[0]);
-  }, [videos]);
+    const playPromise = videoNode.play();
+    if (playPromise?.catch) {
+      playPromise.catch(() => {});
+    }
+  }
+
+  useEffect(() => {
+    if (!videos.length) {
+      queueRef.current = [];
+      queueIndexRef.current = 0;
+      lastServedVideoRef.current = null;
+      slotTokenRef.current = [0, 0];
+      slotReadyRef.current = [false, false];
+      activeSlotRef.current = 0;
+      setActiveSlot(0);
+      const emptySlots = createEmptyVideoSlots(mediaSource, mediaBasePath);
+      videoSlotsRef.current = emptySlots;
+      setVideoSlots(emptySlots);
+      return;
+    }
+
+    queueRef.current = [];
+    queueIndexRef.current = 0;
+    lastServedVideoRef.current = null;
+    slotReadyRef.current = [false, false];
+    activeSlotRef.current = 0;
+    setActiveSlot(0);
+
+    const initialSlots = [buildSlot(0, takeNextVideoName()), buildSlot(1, takeNextVideoName())];
+    videoSlotsRef.current = initialSlots;
+    setVideoSlots(initialSlots);
+  }, [videos, mediaSource, mediaBasePath]);
 
   useEffect(() => {
     const sectionNode = sectionRef.current;
@@ -151,54 +289,76 @@ export function useRandomVideoBackground({
   }, [activeThreshold]);
 
   useEffect(() => {
-    const videoNode = videoRef.current;
-    if (!videoNode) {
-      return undefined;
-    }
+    videoNodesRef.current.forEach((videoNode, slotIndex) => {
+      if (!videoNode) {
+        return;
+      }
 
-    if (!currentVideo || !isActive) {
-      videoNode.pause();
-      return undefined;
-    }
+      if (slotIndex !== activeSlot || !isActive || !videoSlots[slotIndex]?.src) {
+        videoNode.pause();
+        return;
+      }
 
-    const playPromise = videoNode.play();
-    if (playPromise?.catch) {
-      playPromise.catch(() => {});
-    }
+      playSlot(slotIndex);
+    });
+  }, [activeSlot, isActive, videoSlots]);
 
-    return () => {
-      videoNode.pause();
-    };
-  }, [currentVideo, isActive]);
-
-  const advanceVideo = () => {
-    const currentRound = playlistRef.current;
-    if (!currentRound.length) {
+  const handleVideoAdvance = (slotIndex) => {
+    if (slotIndex !== activeSlotRef.current) {
       return;
     }
 
-    const nextIndex = playlistIndexRef.current + 1;
-    if (nextIndex < currentRound.length) {
-      playlistIndexRef.current = nextIndex;
-      setCurrentVideo(currentRound[nextIndex]);
+    const nextSlotIndex = getAlternateSlotIndex(slotIndex);
+    const nextVideoNode = videoNodesRef.current[nextSlotIndex];
+    const previousVideoNode = videoNodesRef.current[slotIndex];
+
+    previousVideoNode?.pause();
+
+    if (nextVideoNode) {
+      nextVideoNode.currentTime = 0;
+    }
+
+    activeSlotRef.current = nextSlotIndex;
+    setActiveSlot(nextSlotIndex);
+
+    if (isActiveRef.current) {
+      playSlot(nextSlotIndex);
+    }
+
+    refillSlot(slotIndex);
+  };
+
+  const handleVideoReady = (slotIndex) => {
+    slotReadyRef.current[slotIndex] = true;
+
+    if (slotIndex === activeSlotRef.current && isActiveRef.current) {
+      playSlot(slotIndex);
+    }
+  };
+
+  const handleVideoError = (slotIndex) => {
+    slotReadyRef.current[slotIndex] = false;
+
+    if (slotIndex === activeSlotRef.current) {
+      handleVideoAdvance(slotIndex);
       return;
     }
 
-    const nextRound = buildVideoRound(videosRef.current, currentRound[currentRound.length - 1]);
-    playlistRef.current = nextRound;
-    playlistIndexRef.current = 0;
-    setCurrentVideo(nextRound[0] || "");
+    refillSlot(slotIndex);
+  };
+
+  const setVideoNode = (slotIndex, node) => {
+    videoNodesRef.current[slotIndex] = node;
   };
 
   return {
+    activeSlot,
+    handleVideoAdvance,
+    handleVideoError,
+    handleVideoReady,
     sectionRef,
-    videoRef,
+    setVideoNode,
     videoCount: videos.length,
-    currentVideoUrl: currentVideo
-      ? mediaSource === "static"
-        ? joinAppPath(`${trimLeadingSlashes(mediaBasePath)}/${encodeURIComponent(currentVideo)}`)
-        : joinBackendPath(`${mediaBasePath}/${encodeURIComponent(currentVideo)}`)
-      : "",
-    handleVideoAdvance: advanceVideo,
+    videoSlots,
   };
 }

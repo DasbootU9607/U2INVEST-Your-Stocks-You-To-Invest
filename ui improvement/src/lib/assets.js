@@ -1,1 +1,1 @@
-export const logoSrc = `${import.meta.env.BASE_URL}u2invest-logo.png`;
+export const logoSrc = `${import.meta.env.BASE_URL}u2invest-logo-transparent.png`;
